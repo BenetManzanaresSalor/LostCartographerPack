@@ -54,7 +54,7 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell>
 
 	protected virtual void CreateChunkHeightsMap( Vector2Int chunkPos )
 	{
-		HeightsMap = MathFunctions.PerlinNoiseMap(
+		HeightsMap = LC_Math.PerlinNoiseMap(
 			new Vector2Int( ChunkSize + 1, ChunkSize + 1 ), // +1 for edges
 			MapSeed,
 			Octaves, Persistance, Lacunarity,

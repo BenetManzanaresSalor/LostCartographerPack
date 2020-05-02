@@ -44,7 +44,7 @@ public class FirstPersonController : MonoBehaviour
 		float mouseX = Input.GetAxis( "Mouse X" ) * Time.deltaTime * MouseSensitivity;
 		float mouseY = Input.GetAxis( "Mouse Y" ) * Time.deltaTime * MouseSensitivity;
 
-		XRotation = MathFunctions.Clamp( XRotation - mouseY, -90f, 90f );
+		XRotation = LC_Math.Clamp( XRotation - mouseY, -90f, 90f );
 
 		CameraTransform.localRotation = Quaternion.Euler( XRotation, 0f, 0f );
 		transform.Rotate( Vector3.up * mouseX );

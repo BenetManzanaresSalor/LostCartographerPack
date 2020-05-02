@@ -55,7 +55,7 @@ public abstract class LC_GenericTerrain<Cell> : MonoBehaviour where Cell : LC_Ce
 	{
 		CreateChunk( PlayerChunkPos );
 
-		foreach ( Vector2Int pos in MathFunctions.AroundPositions( Vector2Int.zero, (uint)ChunkRenderDistance ) )
+		foreach ( Vector2Int pos in LC_Math.AroundPositions( Vector2Int.zero, (uint)ChunkRenderDistance ) )
 		{
 			CreateChunk( pos + PlayerChunkPos );
 		}
@@ -179,7 +179,7 @@ public abstract class LC_GenericTerrain<Cell> : MonoBehaviour where Cell : LC_Ce
 		{
 			PlayerChunkPos = newPlayerChunkPos;
 
-			List<Vector2Int> aroundChunksPos = MathFunctions.AroundPositions( newPlayerChunkPos, (uint)ChunkRenderDistance );
+			List<Vector2Int> aroundChunksPos = LC_Math.AroundPositions( newPlayerChunkPos, (uint)ChunkRenderDistance );
 			aroundChunksPos.Add( newPlayerChunkPos );
 			List<Vector2Int> chunksToUnload = new List<Vector2Int>();
 

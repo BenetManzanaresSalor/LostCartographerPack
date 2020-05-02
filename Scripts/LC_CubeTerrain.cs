@@ -43,12 +43,12 @@ public class LC_CubeTerrain : LC_Terrain
 
 	protected virtual void SplitAndMergeMesh( LC_Chunk chunk, LC_Cell[,] cells )
 	{
-		List<MathFunctions.QuadTreeSector> sectors = MathFunctions.QuadTree(
+		List<LC_Math.QuadTreeSector> sectors = LC_Math.QuadTree(
 			( x, z ) => { return cells[x, z].TerrainPos.y; },
 			( x, y ) => { return x == y; },
 			ChunkSize, true );
 
-		foreach ( MathFunctions.QuadTreeSector sector in sectors )
+		foreach ( LC_Math.QuadTreeSector sector in sectors )
 		{
 			CreateElementMesh( sector.Initial, sector.Final, chunk, cells );
 
