@@ -34,9 +34,7 @@ public static class LC_Math
 		float maxPerlinValue = float.MinValue;
 
 		if ( scaleDivisor <= 0 )
-			scaleDivisor = 0.0001f;
-
-		
+			scaleDivisor = 0.0001f;		
 
 		// Initialize octaves (and optionally min and max perlin values for normalization)
 		System.Random randGen = new System.Random( seed );
@@ -59,7 +57,7 @@ public static class LC_Math
 
 		if ( useGlobalNormalization )
 		{
-			maxPerlinValue /= 1.75f; // Adapt maxPerlinValue to more probable values
+			maxPerlinValue /= 2f; // Adapt maxPerlinValue to more probable values
 			minPerlinValue = -maxPerlinValue;			
 		}
 
@@ -92,7 +90,7 @@ public static class LC_Math
 			}
 		}
 
-		// Normalize map values in min-max range
+		// Normalize map values in Min-Max range
 		for ( int x = 0; x < map.GetLength( 0 ); x++ )
 		{
 			for ( int y = 0; y < map.GetLength( 1 ); y++ )
@@ -462,6 +460,18 @@ public static class LC_Math
 
 		return positions;
 	}
+	
+	public static int CoordsToIndex(int f, int c, int nColumns )
+	{
+		return f * nColumns + c;
+	}
+
+	public static void IndexToCoords( int index, int nColumns, out int f, out int c )
+	{
+		f = index / nColumns;
+		c = index % nColumns;
+	}
+
 
 	#endregion
 

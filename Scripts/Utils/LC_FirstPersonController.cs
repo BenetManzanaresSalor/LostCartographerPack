@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [RequireComponent( typeof( CharacterController ) )]
-public class FirstPersonController : MonoBehaviour
+public class LC_FirstPersonController : MonoBehaviour
 {
 	#region Attributes
 

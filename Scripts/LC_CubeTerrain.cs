@@ -14,6 +14,22 @@ public class LC_CubeTerrain : LC_Terrain
 
 	#endregion
 
+	#region Initialization
+
+	protected override void Start()
+	{
+		base.Start();		
+	}
+
+	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk chunk )
+	{
+		LC_Cell cell = base.CreateCell( chunkX, chunkZ, chunk );
+		cell.Height = Mathf.RoundToInt( cell.Height );
+		return cell;
+	}
+
+	#endregion
+
 	#region Render
 
 	protected override void CellsToMesh( LC_Chunk chunk, LC_Cell[,] cells )
@@ -28,14 +44,8 @@ public class LC_CubeTerrain : LC_Terrain
 			{
 				for ( int z = 0; z < ChunkSize; z++ )
 				{
-					Vector2Int cellPosInChunk = chunk.CellPosToChunk( cells[x, z].TerrainPos );
+					Vector2Int cellPosInChunk = chunk.TerrainPosToChunk( cells[x, z].TerrainPos );
 					CreateElementMesh( cellPosInChunk, cellPosInChunk, chunk, cells );
-
-					// Create mesh before get the maximum mesh vertices at next cell render
-					if ( vertices.Count + MaxVerticesPerRenderElem >= MaxVerticesByMesh )
-					{
-						CreateMeshObj( chunk.Obj );
-					}
 				}
 			}
 		}
@@ -44,57 +54,52 @@ public class LC_CubeTerrain : LC_Terrain
 	protected virtual void SplitAndMergeMesh( LC_Chunk chunk, LC_Cell[,] cells )
 	{
 		List<LC_Math.QuadTreeSector> sectors = LC_Math.QuadTree(
-			( x, z ) => { return cells[x, z].TerrainPos.y; },
+			( x, z ) => { return cells[x, z].Height; },
 			( x, y ) => { return x == y; },
 			ChunkSize, true );
 
 		foreach ( LC_Math.QuadTreeSector sector in sectors )
 		{
 			CreateElementMesh( sector.Initial, sector.Final, chunk, cells );
-
-			// Create mesh before get the maximum mesh vertices at next cell render
-			if ( vertices.Count + MaxVerticesPerRenderElem >= MaxVerticesByMesh )
-			{
-				CreateMeshObj( chunk.Obj );
-			}
 		}
 	}
 
 	protected virtual void CreateElementMesh( Vector2Int iniCellPos, Vector2Int endCellPos, LC_Chunk chunk, LC_Cell[,] cells )
 	{
-		Vector3 realCellPos = ( TerrainPosToReal( cells[iniCellPos.x, iniCellPos.y].TerrainPos ) +
-			TerrainPosToReal( cells[endCellPos.x, endCellPos.y].TerrainPos ) ) / 2f;
+		Vector3 realCellPos = ( TerrainPosToReal( cells[iniCellPos.x, iniCellPos.y] ) + 
+			TerrainPosToReal( cells[endCellPos.x, endCellPos.y] ) ) / 2f;
+
 		int numXCells = endCellPos.x - iniCellPos.x + 1;
 		int numZCells = endCellPos.y - iniCellPos.y + 1;
 
 		// Vertices
-		vertices.Add( realCellPos + new Vector3( -CellSize.x * numXCells / 2f, 0, -CellSize.z * numZCells / 2f ) );
-		vertices.Add( realCellPos + new Vector3( CellSize.x * numXCells / 2f, 0, -CellSize.z * numZCells / 2f ) );
-		vertices.Add( realCellPos + new Vector3( CellSize.x * numXCells / 2f, 0, CellSize.z * numZCells / 2f ) );
-		vertices.Add( realCellPos + new Vector3( -CellSize.x * numXCells / 2f, 0, CellSize.z * numZCells / 2f ) );
+		chunk.Vertices.Add( realCellPos + new Vector3( -CellSize.x * numXCells / 2f, 0, -CellSize.z * numZCells / 2f ) );
+		chunk.Vertices.Add( realCellPos + new Vector3( CellSize.x * numXCells / 2f, 0, -CellSize.z * numZCells / 2f ) );
+		chunk.Vertices.Add( realCellPos + new Vector3( CellSize.x * numXCells / 2f, 0, CellSize.z * numZCells / 2f ) );
+		chunk.Vertices.Add( realCellPos + new Vector3( -CellSize.x * numXCells / 2f, 0, CellSize.z * numZCells / 2f ) );
 
 		// Triangles
-		triangles.Add( vertices.Count - 4 );
-		triangles.Add( vertices.Count - 1 );
-		triangles.Add( vertices.Count - 2 );
+		chunk.Triangles.Add( chunk.Vertices.Count - 4 );
+		chunk.Triangles.Add( chunk.Vertices.Count - 1 );
+		chunk.Triangles.Add( chunk.Vertices.Count - 2 );
 
-		triangles.Add( vertices.Count - 2 );
-		triangles.Add( vertices.Count - 3 );
-		triangles.Add( vertices.Count - 4 );
+		chunk.Triangles.Add( chunk.Vertices.Count - 2 );
+		chunk.Triangles.Add( chunk.Vertices.Count - 3 );
+		chunk.Triangles.Add( chunk.Vertices.Count - 4 );
 
 		// UVs
 		GetUVs( iniCellPos, out Vector2 iniUV, out Vector2 endUV, chunk, cells );
-		uvs.Add( new Vector2( iniUV.x, endUV.y ) );
-		uvs.Add( new Vector2( endUV.x, endUV.y ) );
-		uvs.Add( new Vector2( endUV.x, iniUV.y ) );
-		uvs.Add( new Vector2( iniUV.x, iniUV.y ) );
+		chunk.UVs.Add( new Vector2( iniUV.x, endUV.y ) );
+		chunk.UVs.Add( new Vector2( endUV.x, endUV.y ) );
+		chunk.UVs.Add( new Vector2( endUV.x, iniUV.y ) );
+		chunk.UVs.Add( new Vector2( iniUV.x, iniUV.y ) );
 
 		// Positive x border
 		if ( endCellPos.x < cells.GetLength( 0 ) - 1 )
 		{
 			for ( int z = 0; z < numZCells; z++ )
 			{
-				realCellPos = TerrainPosToReal( cells[endCellPos.x, endCellPos.y - z].TerrainPos );
+				realCellPos = TerrainPosToReal( cells[endCellPos.x, endCellPos.y - z] );
 				CreateEdgeMesh( realCellPos, cells[endCellPos.x + 1, endCellPos.y - z], true, iniUV, endUV, chunk, cells );
 			}
 		}
@@ -104,7 +109,7 @@ public class LC_CubeTerrain : LC_Terrain
 		{
 			for ( int x = 0; x < numXCells; x++ )
 			{
-				realCellPos = TerrainPosToReal( cells[endCellPos.x - x, endCellPos.y].TerrainPos );
+				realCellPos = TerrainPosToReal( cells[endCellPos.x - x, endCellPos.y] );
 				CreateEdgeMesh( realCellPos, cells[endCellPos.x - x, endCellPos.y + 1], false, iniUV, endUV, chunk, cells );
 			}
 		}
@@ -114,7 +119,7 @@ public class LC_CubeTerrain : LC_Terrain
 	{
 		Vector2 edgeIniUV;
 		Vector2 edgeEndUV;
-		float edgeCellHeightDiff = TerrainPosToReal( edgeCell.TerrainPos ).y - cellRealPos.y;
+		float edgeCellHeightDiff = TerrainPosToReal( edgeCell ).y - cellRealPos.y;
 
 		if ( edgeCellHeightDiff != 0 )
 		{
@@ -127,32 +132,32 @@ public class LC_CubeTerrain : LC_Terrain
 			}
 
 			// Set edge vertexs
-			vertices.Add( cellRealPos + new Vector3( CellSize.x * xMultipler / 2f, edgeCellHeightDiff, CellSize.z * zMultipler / 2f ) );
-			vertices.Add( cellRealPos + new Vector3( CellSize.x / 2f, edgeCellHeightDiff, CellSize.z / 2f ) );
-			vertices.Add( cellRealPos + new Vector3( CellSize.x / 2f, 0, CellSize.z / 2f ) );
-			vertices.Add( cellRealPos + new Vector3( CellSize.x * xMultipler / 2f, 0, CellSize.z * zMultipler / 2f ) );
+			chunk.Vertices.Add( cellRealPos + new Vector3( CellSize.x * xMultipler / 2f, edgeCellHeightDiff, CellSize.z * zMultipler / 2f ) );
+			chunk.Vertices.Add( cellRealPos + new Vector3( CellSize.x / 2f, edgeCellHeightDiff, CellSize.z / 2f ) );
+			chunk.Vertices.Add( cellRealPos + new Vector3( CellSize.x / 2f, 0, CellSize.z / 2f ) );
+			chunk.Vertices.Add( cellRealPos + new Vector3( CellSize.x * xMultipler / 2f, 0, CellSize.z * zMultipler / 2f ) );
 
 			// Set edge triangles
 			if ( toRight )
 			{
-				triangles.Add( vertices.Count - 4 );
-				triangles.Add( vertices.Count - 1 );
-				triangles.Add( vertices.Count - 2 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 4 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 1 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 2 );
 
-				triangles.Add( vertices.Count - 2 );
-				triangles.Add( vertices.Count - 3 );
-				triangles.Add( vertices.Count - 4 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 2 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 3 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 4 );
 			}
 			// Inverted ( needed to be seen )
 			else
 			{
-				triangles.Add( vertices.Count - 2 );
-				triangles.Add( vertices.Count - 1 );
-				triangles.Add( vertices.Count - 4 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 2 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 1 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 4 );
 
-				triangles.Add( vertices.Count - 4 );
-				triangles.Add( vertices.Count - 3 );
-				triangles.Add( vertices.Count - 2 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 4 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 3 );
+				chunk.Triangles.Add( chunk.Vertices.Count - 2 );
 			}
 
 			// Set edge UVs dependently of the height difference
@@ -163,14 +168,19 @@ public class LC_CubeTerrain : LC_Terrain
 			}
 			else
 			{
-				Vector2Int cellPosInChunk = new Vector2Int( edgeCell.TerrainPos.x - chunk.CellsOffset.x, edgeCell.TerrainPos.z - chunk.CellsOffset.y );
-				GetUVs( cellPosInChunk, out edgeIniUV, out edgeEndUV, chunk, cells );
+				GetUVs( chunk.TerrainPosToChunk( edgeCell.TerrainPos ),
+					out edgeIniUV, out edgeEndUV, chunk, cells );
 			}
-			uvs.Add( new Vector2( edgeIniUV.x, edgeEndUV.y ) );
-			uvs.Add( new Vector2( edgeEndUV.x, edgeEndUV.y ) );
-			uvs.Add( new Vector2( edgeEndUV.x, edgeIniUV.y ) );
-			uvs.Add( new Vector2( edgeIniUV.x, edgeIniUV.y ) );
+			chunk.UVs.Add( new Vector2( edgeIniUV.x, edgeEndUV.y ) );
+			chunk.UVs.Add( new Vector2( edgeEndUV.x, edgeEndUV.y ) );
+			chunk.UVs.Add( new Vector2( edgeEndUV.x, edgeIniUV.y ) );
+			chunk.UVs.Add( new Vector2( edgeIniUV.x, edgeIniUV.y ) );
 		}
+	}
+
+	protected override void CalculateNormals( LC_Chunk chunk )
+	{
+		// Manual compute of normals don't needed
 	}
 
 	#endregion
