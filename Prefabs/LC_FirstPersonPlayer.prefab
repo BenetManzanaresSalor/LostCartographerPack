@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 3543242142647039407}
   - component: {fileID: 3543242142647039406}
   m_Layer: 9
-  m_Name: First Person Player
+  m_Name: LC_FirstPersonPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MouseSensitivity: 100
-  XandZvelocity: 30
+  XandZvelocity: 75
   JumpHeight: 3
   Gravity: -9.807
   GroundCheck: {fileID: 3543242142416358627}
@@ -103,7 +103,7 @@ MonoBehaviour:
   WhatIsGround:
     serializedVersion: 2
     m_Bits: 1
-  FreeVerticalMovement: 0
+  FreeVerticalMovement: 1
   Yvelocity: 30
 --- !u!1 &3543242143765965901
 GameObject:

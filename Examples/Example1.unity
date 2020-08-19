@@ -152,12 +152,13 @@ MonoBehaviour:
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 1, z: 2}
   ChunkSizeLevel: 5
-  ChunkRenderDistance: 1
+  ChunkRenderDistance: 2
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
   ParallelChunkCellsLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
-  HasCollider: 1
+  HasCollider: 0
+  AutoUpdate: 1
   HeightsMapDivisor: 25
   MaxHeight: 14
   RandomMapSeed: 0
@@ -188,7 +189,7 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 3543242141843334200}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1208001912
+--- !u!1 &1052120541
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -196,8 +197,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1208001914}
-  - component: {fileID: 1208001915}
+  - component: {fileID: 1052120543}
+  - component: {fileID: 1052120542}
   m_Layer: 0
   m_Name: LC_Terrain
   m_TagString: Untagged
@@ -205,13 +206,44 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1208001914
+--- !u!114 &1052120542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1052120541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b471b7503c188b408ce97deeb38bae4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Player: {fileID: 812618136}
+  CellSize: {x: 2, y: 1, z: 2}
+  ChunkSizeLevel: 4
+  ChunkRenderDistance: 10
+  DynamicChunkLoading: 1
+  ParallelChunkLoading: 1
+  ParallelChunkCellsLoading: 1
+  RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
+  HasCollider: 0
+  AutoUpdate: 0
+  HeightsMapDivisor: 75
+  MaxHeight: 25
+  RandomMapSeed: 0
+  MapSeed: 55
+  Octaves: 4
+  Persistance: 0.3
+  Lacunarity: 3
+  TextureColumnsAndRows: {x: 1, y: 3}
+  TextureMarginRelation: 3
+--- !u!4 &1052120543
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1208001912}
+  m_GameObject: {fileID: 1052120541}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -219,36 +251,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1208001915
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1208001912}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b471b7503c188b408ce97deeb38bae4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Player: {fileID: 812618136}
-  CellSize: {x: 1, y: 1, z: 1}
-  ChunkSizeLevel: 7
-  ChunkRenderDistance: 2
-  DynamicChunkLoading: 1
-  ParallelChunkLoading: 1
-  ParallelChunkCellsLoading: 1
-  RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
-  HasCollider: 0
-  HeightsMapDivisor: 25
-  MaxHeight: 15
-  RandomMapSeed: 0
-  MapSeed: 55
-  Octaves: 5
-  Persistance: 0.5
-  Lacunarity: 1.75
-  TextureColumnsAndRows: {x: 1, y: 3}
-  TextureMarginRelation: 3
 --- !u!1 &1835653123
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,11 +408,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3543242142647039406, guid: b77220f7053d8f64c843de6f3ba6e25c,
-        type: 3}
-      propertyPath: FreeVerticalMovement
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b77220f7053d8f64c843de6f3ba6e25c, type: 3}

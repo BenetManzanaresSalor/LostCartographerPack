@@ -34,7 +34,7 @@ public static class LC_Math
 		float maxPerlinValue = float.MinValue;
 
 		if ( scaleDivisor <= 0 )
-			scaleDivisor = 0.0001f;		
+			scaleDivisor = 0.0001f;
 
 		// Initialize octaves (and optionally min and max perlin values for normalization)
 		System.Random randGen = new System.Random( seed );
@@ -46,7 +46,7 @@ public static class LC_Math
 		for ( int i = 0; i < octaves; i++ )
 		{
 			octavesOffsets[i] = new Vector2( randGen.Next( -100000, 100000 ) + xOffset,
-				randGen.Next( -100000, 100000 ) + yOffset );			
+				randGen.Next( -100000, 100000 ) + yOffset );
 
 			if ( useGlobalNormalization )
 			{
@@ -58,7 +58,7 @@ public static class LC_Math
 		if ( useGlobalNormalization )
 		{
 			maxPerlinValue /= 2f; // Adapt maxPerlinValue to more probable values
-			minPerlinValue = -maxPerlinValue;			
+			minPerlinValue = -maxPerlinValue;
 		}
 
 		// Initializate map
@@ -74,7 +74,7 @@ public static class LC_Math
 				{
 					sampleX = ( x - halfX + octavesOffsets[oct].x ) / scaleDivisor * frequency;
 					sampleY = ( y - halfY + octavesOffsets[oct].y ) / scaleDivisor * frequency;
-					perlinValue += amplitude * (Mathf.PerlinNoise( sampleX, sampleY ) * 2 - 1); // * 2 - 1 to change range [0, 1] to [-1, 1]
+					perlinValue += amplitude * ( Mathf.PerlinNoise( sampleX, sampleY ) * 2 - 1 ); // * 2 - 1 to change range [0, 1] to [-1, 1]
 
 					amplitude *= persistance;
 					frequency *= lacunarity;
@@ -95,7 +95,7 @@ public static class LC_Math
 		{
 			for ( int y = 0; y < map.GetLength( 1 ); y++ )
 			{
-				map[x, y] = minAndMaxValues.x + Mathf.InverseLerp( minPerlinValue, maxPerlinValue, map[x, y] ) * ( minAndMaxValues.y - minAndMaxValues.x );			
+				map[x, y] = minAndMaxValues.x + Mathf.InverseLerp( minPerlinValue, maxPerlinValue, map[x, y] ) * ( minAndMaxValues.y - minAndMaxValues.x );
 			}
 		}
 
@@ -440,11 +440,11 @@ public static class LC_Math
 	/// <param name="center">Center of the square area.</param>
 	/// <param name="squareRadius">Radius of the square area.</param>
 	/// <returns>List of the positions in the square area.</returns>
-	public static List<Vector2Int> AroundPositions( Vector2Int center, uint squareRadius )
+	public static List<Vector2Int> AroundPositions( Vector2Int center, int squareRadius )
 	{
 		List<Vector2Int> positions = new List<Vector2Int>();
 
-		Vector2Int areaTopLeftCorner = center + Vector2Int.one * -1 * (int)squareRadius;
+		Vector2Int areaTopLeftCorner = center + Vector2Int.one * -1 * squareRadius;
 		Vector2Int position;
 		for ( int x = 0; x <= squareRadius * 2; x++ )
 		{
@@ -460,8 +460,8 @@ public static class LC_Math
 
 		return positions;
 	}
-	
-	public static int CoordsToIndex(int f, int c, int nColumns )
+
+	public static int CoordsToIndex( int f, int c, int nColumns )
 	{
 		return f * nColumns + c;
 	}

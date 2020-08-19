@@ -1,10 +1,13 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 {
 	#region Attributes
 
 	#region Settings	
+
+	[SerializeField] public bool AutoUpdate = false;    // If true, regenerates the terrain when any setting is changed
 
 	[Header( "Random generation settings" )]
 	[SerializeField] protected float HeightsMapDivisor = 25f;
@@ -66,15 +69,15 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 			Octaves, Persistance, Lacunarity,
 			new Vector2( 0, MaxHeight ),
 			HeightsMapDivisor,
-			( chunkPos.x - 1 ) * ChunkSize,   // -1 for normals computation
-			( chunkPos.y - 1 ) * ChunkSize,   // -1 for normals computation
+			( chunkPos.x - 1 ) * ChunkSize,   // -1 for normals computation (get neighbour chunk edge heights)
+			( chunkPos.y - 1 ) * ChunkSize,   // -1 for normals computation (get neighbour chunk edge heights)
 			true );
 	}
 
 	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk chunk )
 	{
 		return new LC_Cell( new Vector2Int( chunk.CellsOffset.x + chunkX, chunk.CellsOffset.y + chunkZ ),
-			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset from normals computation
+			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset for normals computation
 	}
 
 	#endregion
@@ -215,4 +218,34 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 	}
 
 	#endregion
+
+	[CustomEditor( typeof( LC_Terrain ) )]
+	internal class LevelScriptEditor : Editor
+	{
+		public override void OnInspectorGUI()
+		{
+			LC_Terrain myTarget = (LC_Terrain)target;
+
+			bool hasChanged = DrawDefaultInspector();
+
+			if ( ( myTarget.AutoUpdate && hasChanged ) || GUILayout.Button( "Generate" ) )
+			{
+				// Disable parallel settings
+				bool parallelChunk = myTarget.ParallelChunkLoading;
+				bool parallelCells = myTarget.ParallelChunkCellsLoading;
+				myTarget.ParallelChunkLoading = false;
+				myTarget.ParallelChunkCellsLoading = false;
+
+				// Generate
+				myTarget.Start();
+
+				// Restore parallel settings
+				myTarget.ParallelChunkLoading = parallelChunk;
+				myTarget.ParallelChunkCellsLoading = parallelCells;
+			}
+
+			if ( GUILayout.Button( "Destroy" ) )
+				myTarget.DestroyTerrain( true );
+		}
+	}
 }
