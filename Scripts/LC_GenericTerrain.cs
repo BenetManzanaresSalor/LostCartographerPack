@@ -25,6 +25,7 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 	[SerializeField] protected bool ParallelChunkLoading = true;
 	[SerializeField] protected bool ParallelChunkCellsLoading = true;
 	[SerializeField] protected Material RenderMaterial;
+	[SerializeField] protected float MaxUpdateTime = 1f / 120f;
 
 	#endregion
 
@@ -39,7 +40,7 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 	protected Dictionary<Vector2Int, Chunk> ChunksBuilt;
 	protected Dictionary<Vector2Int, Chunk> CurrentChunks;
 	protected int MaxVerticesPerRenderElem = 12;
-	protected bool IsWorkFrame = true;
+	protected float UpdateIniTime;
 
 	protected object ChunksLoadingLock = new object();
 
@@ -204,30 +205,23 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 
 	protected virtual void Update()
 	{
-		// Update CurrentRealPos (needed for parallel functions and others)
-		CurrentRealPos = transform.position;
+		UpdateIniTime = Time.realtimeSinceStartup;
 
-		// Update PlayerChunkPos, needed for DynamicChunkLoading
-		PlayerChunkPos = RealPosToChunk( Player.position );
-
-		// Update ChunkRenderRealDistance, needed for DynamicChunkLoading
-		ChunkRenderRealDistance = ChunkRenderDistance * ChunkSize * Mathf.Max( CellSize.x, CellSize.z );
+		// Update useful variables
+		CurrentRealPos = transform.position;    // Needed for parallel functions and others
+		PlayerChunkPos = RealPosToChunk( Player.position ); // needed for DynamicChunkLoading
+		ChunkRenderRealDistance = ChunkRenderDistance * ChunkSize * Mathf.Max( CellSize.x, CellSize.z );    // needed for DynamicChunkLoading
 
 		// Load the current player chunk if isn't loaded
 		CheckPlayerCurrentChunk();
 
-		// Do work 1 of each 2 frames
-		if ( IsWorkFrame && ( ParallelChunkLoading || DynamicChunkLoading ) )
-		{
-			bool someChunkCreated = false;
+		// Check chunk built parallelly (if remains time)
+		if ( ParallelChunkLoading && InMaxUpdateTime() )
+			CreateBuiltChunks();
 
-			if ( ParallelChunkLoading )
-				someChunkCreated = CreateBuiltChunks();
-
-			if ( !someChunkCreated && DynamicChunkLoading )
-				UpdateChunks();
-		}
-		IsWorkFrame = !IsWorkFrame;
+		// Update chunks needed (if remains time)
+		if ( DynamicChunkLoading && InMaxUpdateTime() )
+			UpdateChunks();
 	}
 
 	protected virtual void CheckPlayerCurrentChunk()
@@ -240,7 +234,7 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 			if ( isLoading )
 			{
 				playerChunk.ParallelTask.Wait();  // Wait parallel loading to end					
-				IsWorkFrame = true; // Make working frame in order to be created at CreateBuiltChunks
+				CreateBuiltChunks();    // Built the chunk (and the others if are needed)
 			}
 			else
 			{
@@ -249,6 +243,11 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 		}
 		else
 			Monitor.Exit( ChunksLoadingLock );
+	}
+
+	protected virtual bool InMaxUpdateTime()
+	{
+		return ( Time.realtimeSinceStartup - UpdateIniTime ) <= MaxUpdateTime;
 	}
 
 	protected virtual bool CreateBuiltChunks()
@@ -261,11 +260,16 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 			{
 				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksBuilt )
 				{
-					if ( IsChunkNeeded( entry.Key ) )
+					if ( InMaxUpdateTime() )
 					{
-						CreateChunkMeshObj( entry.Value );
-						CurrentChunks.Add( entry.Key, entry.Value );
+						if ( IsChunkNeeded( entry.Key ) )
+						{
+							CreateChunkMeshObj( entry.Value );
+							CurrentChunks.Add( entry.Key, entry.Value );
+						}
 					}
+					else
+						break;
 				}
 				ChunksBuilt.Clear();
 				Monitor.Exit( ChunksLoadingLock );
@@ -312,7 +316,13 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 
 			// Load the other chunks
 			foreach ( KeyValuePair<Vector2Int, object> entry in chunksNeeded )
-				CreateChunk( entry.Key );
+			{
+				if ( InMaxUpdateTime() )
+					CreateChunk( entry.Key );
+				else
+					break;
+			}
+
 		}
 
 		// Remove useless chunks

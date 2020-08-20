@@ -267,9 +267,6 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
 
 			if ( GUILayout.Button( "Destroy" ) )
 				myTarget.DestroyTerrain( true );
-
-			if ( GUILayout.Button( "Collect" ) )
-				GC.Collect();
 		}
 	}
 }

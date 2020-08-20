@@ -158,6 +158,7 @@ MonoBehaviour:
   ParallelChunkLoading: 1
   ParallelChunkCellsLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
+  MaxUpdateTime: 0.008333334
   AutoUpdate: 1
   HeightsMapDivisor: 25
   MaxHeight: 14
@@ -223,12 +224,13 @@ MonoBehaviour:
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 2, z: 2}
   ChunkSizeLevel: 5
-  ChunkRenderDistance: 6
+  ChunkRenderDistance: 15
   HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
   ParallelChunkCellsLoading: 1
   RenderMaterial: {fileID: 2100000, guid: af7088dc06a820749bbdfdcf052aeb5d, type: 2}
+  MaxUpdateTime: 0.008333335
   AutoUpdate: 0
   HeightsMapDivisor: 75
   MaxHeight: 25
