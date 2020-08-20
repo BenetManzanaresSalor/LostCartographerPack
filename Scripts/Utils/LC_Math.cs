@@ -405,6 +405,12 @@ public static class LC_Math
 		return maximum;
 	}
 
+	public static int Mod( int x, int m )
+	{
+		int r = x % m;
+		return r < 0 ? r + m : r;
+	}
+
 	/// <summary>
 	/// Clamps a value in a range.
 	/// </summary>
@@ -438,17 +444,17 @@ public static class LC_Math
 	/// Obtains the adjacent positions in a square radius, excluding the center.
 	/// </summary>
 	/// <param name="center">Center of the square area.</param>
-	/// <param name="squareRadius">Radius of the square area.</param>
+	/// <param name="radius">Radius of square area. Minimum 1.</param>
 	/// <returns>List of the positions in the square area.</returns>
-	public static List<Vector2Int> AroundPositions( Vector2Int center, int squareRadius )
+	public static List<Vector2Int> AroundPositions( Vector2Int center, int radius )
 	{
 		List<Vector2Int> positions = new List<Vector2Int>();
 
-		Vector2Int areaTopLeftCorner = center + Vector2Int.one * -1 * squareRadius;
+		Vector2Int areaTopLeftCorner = center + Vector2Int.one * -1 * radius;
 		Vector2Int position;
-		for ( int x = 0; x <= squareRadius * 2; x++ )
+		for ( int x = 0; x <= radius * 2; x++ )
 		{
-			for ( int y = 0; y <= squareRadius * 2; y++ )
+			for ( int y = 0; y <= radius * 2; y++ )
 			{
 				position = areaTopLeftCorner + new Vector2Int( x, y );
 				if ( position != center )
@@ -471,7 +477,6 @@ public static class LC_Math
 		f = index / nColumns;
 		c = index % nColumns;
 	}
-
 
 	#endregion
 

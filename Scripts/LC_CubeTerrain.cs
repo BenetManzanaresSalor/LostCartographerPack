@@ -18,10 +18,10 @@ public class LC_CubeTerrain : LC_Terrain
 
 	protected override void Start()
 	{
-		base.Start();		
+		base.Start();
 	}
 
-	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk chunk )
+	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
 		LC_Cell cell = base.CreateCell( chunkX, chunkZ, chunk );
 		cell.Height = Mathf.RoundToInt( cell.Height );
@@ -32,11 +32,11 @@ public class LC_CubeTerrain : LC_Terrain
 
 	#region Render
 
-	protected override void CellsToMesh( LC_Chunk chunk, LC_Cell[,] cells )
+	protected override void CellsToMesh( LC_Chunk<LC_Cell> chunk )
 	{
 		if ( UseSplitAndMerge )
 		{
-			SplitAndMergeMesh( chunk, cells );
+			SplitAndMergeMesh( chunk );
 		}
 		else
 		{
@@ -44,30 +44,30 @@ public class LC_CubeTerrain : LC_Terrain
 			{
 				for ( int z = 0; z < ChunkSize; z++ )
 				{
-					Vector2Int cellPosInChunk = chunk.TerrainPosToChunk( cells[x, z].TerrainPos );
-					CreateElementMesh( cellPosInChunk, cellPosInChunk, chunk, cells );
+					Vector2Int cellPosInChunk = chunk.TerrainPosToChunk( chunk.Cells[x, z].TerrainPos );
+					CreateElementMesh( cellPosInChunk, cellPosInChunk, chunk );
 				}
 			}
 		}
 	}
 
-	protected virtual void SplitAndMergeMesh( LC_Chunk chunk, LC_Cell[,] cells )
+	protected virtual void SplitAndMergeMesh( LC_Chunk<LC_Cell> chunk )
 	{
 		List<LC_Math.QuadTreeSector> sectors = LC_Math.QuadTree(
-			( x, z ) => { return cells[x, z].Height; },
+			( x, z ) => { return chunk.Cells[x, z].Height; },
 			( x, y ) => { return x == y; },
 			ChunkSize, true );
 
 		foreach ( LC_Math.QuadTreeSector sector in sectors )
 		{
-			CreateElementMesh( sector.Initial, sector.Final, chunk, cells );
+			CreateElementMesh( sector.Initial, sector.Final, chunk );
 		}
 	}
 
-	protected virtual void CreateElementMesh( Vector2Int iniCellPos, Vector2Int endCellPos, LC_Chunk chunk, LC_Cell[,] cells )
+	protected virtual void CreateElementMesh( Vector2Int iniCellPos, Vector2Int endCellPos, LC_Chunk<LC_Cell> chunk )
 	{
-		Vector3 realCellPos = ( TerrainPosToReal( cells[iniCellPos.x, iniCellPos.y] ) + 
-			TerrainPosToReal( cells[endCellPos.x, endCellPos.y] ) ) / 2f;
+		Vector3 realCellPos = ( TerrainPosToReal( chunk.Cells[iniCellPos.x, iniCellPos.y] ) +
+			TerrainPosToReal( chunk.Cells[endCellPos.x, endCellPos.y] ) ) / 2f;
 
 		int numXCells = endCellPos.x - iniCellPos.x + 1;
 		int numZCells = endCellPos.y - iniCellPos.y + 1;
@@ -88,34 +88,34 @@ public class LC_CubeTerrain : LC_Terrain
 		chunk.Triangles.Add( chunk.Vertices.Count - 4 );
 
 		// UVs
-		GetUVs( iniCellPos, out Vector2 iniUV, out Vector2 endUV, chunk, cells );
+		GetUVs( iniCellPos, out Vector2 iniUV, out Vector2 endUV, chunk );
 		chunk.UVs.Add( new Vector2( iniUV.x, endUV.y ) );
 		chunk.UVs.Add( new Vector2( endUV.x, endUV.y ) );
 		chunk.UVs.Add( new Vector2( endUV.x, iniUV.y ) );
 		chunk.UVs.Add( new Vector2( iniUV.x, iniUV.y ) );
 
 		// Positive x border
-		if ( endCellPos.x < cells.GetLength( 0 ) - 1 )
+		if ( endCellPos.x < chunk.Cells.GetLength( 0 ) - 1 )
 		{
 			for ( int z = 0; z < numZCells; z++ )
 			{
-				realCellPos = TerrainPosToReal( cells[endCellPos.x, endCellPos.y - z] );
-				CreateEdgeMesh( realCellPos, cells[endCellPos.x + 1, endCellPos.y - z], true, iniUV, endUV, chunk, cells );
+				realCellPos = TerrainPosToReal( chunk.Cells[endCellPos.x, endCellPos.y - z] );
+				CreateEdgeMesh( realCellPos, chunk.Cells[endCellPos.x + 1, endCellPos.y - z], true, iniUV, endUV, chunk );
 			}
 		}
 
 		// Positive z border
-		if ( endCellPos.y < cells.GetLength( 1 ) - 1 )
+		if ( endCellPos.y < chunk.Cells.GetLength( 1 ) - 1 )
 		{
 			for ( int x = 0; x < numXCells; x++ )
 			{
-				realCellPos = TerrainPosToReal( cells[endCellPos.x - x, endCellPos.y] );
-				CreateEdgeMesh( realCellPos, cells[endCellPos.x - x, endCellPos.y + 1], false, iniUV, endUV, chunk, cells );
+				realCellPos = TerrainPosToReal( chunk.Cells[endCellPos.x - x, endCellPos.y] );
+				CreateEdgeMesh( realCellPos, chunk.Cells[endCellPos.x - x, endCellPos.y + 1], false, iniUV, endUV, chunk );
 			}
 		}
 	}
 
-	protected virtual void CreateEdgeMesh( Vector3 cellRealPos, LC_Cell edgeCell, bool toRight, Vector2 iniUV, Vector2 endUV, LC_Chunk chunk, LC_Cell[,] cells )
+	protected virtual void CreateEdgeMesh( Vector3 cellRealPos, LC_Cell edgeCell, bool toRight, Vector2 iniUV, Vector2 endUV, LC_Chunk<LC_Cell> chunk )
 	{
 		Vector2 edgeIniUV;
 		Vector2 edgeEndUV;
@@ -169,7 +169,7 @@ public class LC_CubeTerrain : LC_Terrain
 			else
 			{
 				GetUVs( chunk.TerrainPosToChunk( edgeCell.TerrainPos ),
-					out edgeIniUV, out edgeEndUV, chunk, cells );
+					out edgeIniUV, out edgeEndUV, chunk );
 			}
 			chunk.UVs.Add( new Vector2( edgeIniUV.x, edgeEndUV.y ) );
 			chunk.UVs.Add( new Vector2( edgeEndUV.x, edgeEndUV.y ) );
@@ -178,7 +178,7 @@ public class LC_CubeTerrain : LC_Terrain
 		}
 	}
 
-	protected override void CalculateNormals( LC_Chunk chunk )
+	protected override void CalculateNormals( LC_Chunk<LC_Cell> chunk )
 	{
 		// Manual compute of normals don't needed
 	}

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class LC_Cell
@@ -13,22 +14,22 @@ public class LC_Cell
 	}
 }
 
-public class LC_Chunk
+public class LC_Chunk<Cell> where Cell : LC_Cell
 {
 	public GameObject Obj;
 	public Vector2Int Position;
 	public Vector2Int CellsOffset;
 	public float[,] HeightsMap;
+	public Cell[,] Cells;
+	public Task ParallelTask;
 
 	public List<Vector3> Vertices;
 	public List<int> Triangles;
 	public List<Vector2> UVs;
 	public Vector3[] Normals;
-
 	public Vector3[] VerticesArray;
 	public int[] TrianglesArray;
 	public Vector2[] UVsArray;
-
 
 	public LC_Chunk( GameObject obj, Vector2Int position, int chunkSize )
 	{
@@ -59,9 +60,40 @@ public class LC_Chunk
 		TrianglesArray = Triangles.ToArray();
 		UVsArray = UVs.ToArray();
 
-		// Reset lists
+		// Clear lists
 		Vertices.Clear();
 		Triangles.Clear();
 		UVs.Clear();
+	}
+
+	public void Destroy()
+	{
+		if ( Obj != null )
+		{
+			MeshFilter meshFilter = Obj.GetComponent<MeshFilter>();
+			if ( meshFilter )
+				UnityEngine.Object.Destroy( meshFilter.sharedMesh );
+
+			MeshCollider meshCollider = Obj.GetComponent<MeshCollider>();
+			if ( meshCollider )
+				UnityEngine.Object.Destroy( meshCollider.sharedMesh );
+
+			UnityEngine.Object.Destroy( Obj.gameObject );
+		}
+
+		if ( ParallelTask != null && !ParallelTask.IsCompleted && !ParallelTask.IsCanceled && !ParallelTask.IsFaulted )
+			ParallelTask.Dispose();
+
+		HeightsMap = null;
+		Cells = null;
+
+		Vertices?.Clear();
+		Triangles?.Clear();
+		UVs?.Clear();
+		Normals = null;
+
+		VerticesArray = null;
+		TrianglesArray = null;
+		UVsArray = null;
 	}
 }

@@ -1,7 +1,8 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 
-public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
+public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
 {
 	#region Attributes
 
@@ -21,6 +22,8 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 	[Header( "Additional render settings" )]
 	[SerializeField] protected Vector2Int TextureColumnsAndRows = Vector2Int.one;
 	[SerializeField] [Range( 1, 4 )] protected float TextureMarginRelation = 3;
+	[SerializeField] protected bool UseHeightShader = false;
+	[SerializeField] protected Color[] HeightShaderColors;
 
 	#endregion
 
@@ -45,17 +48,35 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 		TextureMargin = TextureSize / TextureMarginRelation;
 
 		RandomGenerator = new System.Random();
-		if ( RandomMapSeed ) MapSeed = RandomGenerator.Next();
+		if ( RandomMapSeed )
+			MapSeed = RandomGenerator.Next();
 
 		base.Start();
 	}
 
-	protected override LC_Chunk CreateChunkInstance( Vector2Int chunkPos )
+	protected override void IniTerrain()
 	{
-		return new LC_Chunk( new GameObject(), chunkPos, ChunkSize );
+		if ( UseHeightShader )
+		{
+			RenderMaterial.SetFloat( "minHeight", 0 );
+			RenderMaterial.SetFloat( "maxHeight", MaxHeight );
+			RenderMaterial.SetInt( "n_colors", HeightShaderColors.Length );
+			RenderMaterial.SetColorArray( "colors", HeightShaderColors );
+		}
+
+		base.IniTerrain();
 	}
 
-	protected override LC_Cell[,] CreateCells( LC_Chunk chunk )
+	#endregion
+
+	#region Chunk creation
+
+	protected override LC_Chunk<LC_Cell> CreateChunkInstance( Vector2Int chunkPos )
+	{
+		return new LC_Chunk<LC_Cell>( new GameObject(), chunkPos, ChunkSize );
+	}
+
+	protected override LC_Cell[,] CreateCells( LC_Chunk<LC_Cell> chunk )
 	{
 		chunk.HeightsMap = CreateChunkHeightsMap( chunk.Position );
 		return base.CreateCells( chunk );
@@ -74,25 +95,23 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 			true );
 	}
 
-	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk chunk )
+	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
 		return new LC_Cell( new Vector2Int( chunk.CellsOffset.x + chunkX, chunk.CellsOffset.y + chunkZ ),
 			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset for normals computation
 	}
 
-	#endregion
-
 	#region Mesh
 
-	protected override void CellsToMesh( LC_Chunk chunk, LC_Cell[,] cells )
+	protected override void CellsToMesh( LC_Chunk<LC_Cell> chunk )
 	{
-		base.CellsToMesh( chunk, cells );
+		base.CellsToMesh( chunk );
 		CalculateNormals( chunk );
 	}
 
-	protected override void CreateCellMesh( int chunkX, int chunkZ, LC_Chunk chunk, LC_Cell[,] cells )
+	protected override void CreateCellMesh( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
-		LC_Cell cell = cells[chunkX, chunkZ];
+		LC_Cell cell = chunk.Cells[chunkX, chunkZ];
 		Vector3 realPos = TerrainPosToReal( cell );
 
 		// Vertices
@@ -105,27 +124,27 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 
 			chunk.Triangles.Add( vertexI );
 			chunk.Triangles.Add( vertexI + 1 );
-			chunk.Triangles.Add( vertexI + cells.GetLength( 0 ) + 1 );
+			chunk.Triangles.Add( vertexI + chunk.Cells.GetLength( 0 ) + 1 );
 
 			chunk.Triangles.Add( vertexI );
-			chunk.Triangles.Add( vertexI + cells.GetLength( 0 ) + 1 );
-			chunk.Triangles.Add( vertexI + cells.GetLength( 0 ) );
+			chunk.Triangles.Add( vertexI + chunk.Cells.GetLength( 0 ) + 1 );
+			chunk.Triangles.Add( vertexI + chunk.Cells.GetLength( 0 ) );
 		}
 
 		// UVs
-		GetUVs( new Vector2Int( chunkX, chunkZ ), out Vector2 iniUV, out Vector2 endUV, chunk, cells );
+		GetUVs( new Vector2Int( chunkX, chunkZ ), out Vector2 iniUV, out Vector2 endUV, chunk );
 		chunk.UVs.Add( iniUV );
 	}
 
-	public void GetUVs( Vector2Int chunkPos, out Vector2 ini, out Vector2 end, LC_Chunk chunk, LC_Cell[,] cells )
+	public void GetUVs( Vector2Int chunkPos, out Vector2 ini, out Vector2 end, LC_Chunk<LC_Cell> chunk )
 	{
-		Vector2Int texPos = GetTexPos( cells[chunkPos.x, chunkPos.y], chunk, cells );
+		Vector2Int texPos = GetTexPos( chunk.Cells[chunkPos.x, chunkPos.y], chunk );
 
 		end = new Vector2( ( texPos.x + 1f ) / TextureColumnsAndRows.x, ( texPos.y + 1f ) / TextureColumnsAndRows.y ) - TextureMargin;
 		ini = end - TextureMargin;
 	}
 
-	protected virtual Vector2Int GetTexPos( LC_Cell cell, LC_Chunk chunk, LC_Cell[,] cells )
+	protected virtual Vector2Int GetTexPos( LC_Cell cell, LC_Chunk<LC_Cell> chunk )
 	{
 		float value = Mathf.InverseLerp( 0, MaxHeight, cell.Height );
 		int texInd = Mathf.RoundToInt( value * ( NumTextures - 1 ) );
@@ -135,7 +154,7 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 		return new Vector2Int( x, y );
 	}
 
-	protected virtual void CalculateNormals( LC_Chunk chunk )
+	protected virtual void CalculateNormals( LC_Chunk<LC_Cell> chunk )
 	{
 		chunk.Normals = new Vector3[( ChunkSize + 1 ) * ( ChunkSize + 1 )];
 		int i, triangleIdx, x, z;
@@ -201,7 +220,7 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 			chunk.Normals[i].Normalize();
 	}
 
-	protected virtual void CalculateTrianglesNormals( int firstTriangleIdx, LC_Chunk chunk )
+	protected virtual void CalculateTrianglesNormals( int firstTriangleIdx, LC_Chunk<LC_Cell> chunk )
 	{
 		int idxA, idxB, idxC;
 		Vector3 normal;
@@ -216,6 +235,8 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 		chunk.Normals[idxB] += normal;
 		chunk.Normals[idxC] += normal;
 	}
+
+	#endregion
 
 	#endregion
 
@@ -246,6 +267,9 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk>
 
 			if ( GUILayout.Button( "Destroy" ) )
 				myTarget.DestroyTerrain( true );
+
+			if ( GUILayout.Button( "Collect" ) )
+				GC.Collect();
 		}
 	}
 }

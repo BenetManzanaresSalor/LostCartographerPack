@@ -151,13 +151,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 1, z: 2}
-  ChunkSizeLevel: 5
-  ChunkRenderDistance: 2
+  ChunkSizeLevel: 4
+  ChunkRenderDistance: 5
+  HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
   ParallelChunkCellsLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
-  HasCollider: 0
   AutoUpdate: 1
   HeightsMapDivisor: 25
   MaxHeight: 14
@@ -168,6 +168,8 @@ MonoBehaviour:
   Lacunarity: 2
   TextureColumnsAndRows: {x: 1, y: 3}
   TextureMarginRelation: 3
+  UseHeightShader: 0
+  HeightShaderColors: []
   UseSplitAndMerge: 1
 --- !u!4 &596646710
 Transform:
@@ -219,24 +221,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Player: {fileID: 812618136}
-  CellSize: {x: 2, y: 1, z: 2}
-  ChunkSizeLevel: 4
-  ChunkRenderDistance: 10
+  CellSize: {x: 2, y: 2, z: 2}
+  ChunkSizeLevel: 5
+  ChunkRenderDistance: 6
+  HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
   ParallelChunkCellsLoading: 1
-  RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
-  HasCollider: 0
+  RenderMaterial: {fileID: 2100000, guid: af7088dc06a820749bbdfdcf052aeb5d, type: 2}
   AutoUpdate: 0
   HeightsMapDivisor: 75
   MaxHeight: 25
   RandomMapSeed: 0
-  MapSeed: 55
+  MapSeed: 3
   Octaves: 4
   Persistance: 0.3
-  Lacunarity: 3
+  Lacunarity: 2.5
   TextureColumnsAndRows: {x: 1, y: 3}
   TextureMarginRelation: 3
+  UseHeightShader: 1
+  HeightShaderColors:
+  - {r: 0.9215687, g: 0.89019614, b: 0.8078432, a: 1}
+  - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
+  - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
 --- !u!4 &1052120543
 Transform:
   m_ObjectHideFlags: 0
@@ -278,7 +285,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 9
   m_Type: 1
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
