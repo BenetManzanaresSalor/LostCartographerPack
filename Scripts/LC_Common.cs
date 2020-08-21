@@ -31,9 +31,8 @@ public class LC_Chunk<Cell> where Cell : LC_Cell
 	public int[] TrianglesArray;
 	public Vector2[] UVsArray;
 
-	public LC_Chunk( GameObject obj, Vector2Int position, int chunkSize )
+	public LC_Chunk( Vector2Int position, int chunkSize )
 	{
-		Obj = obj;
 		Position = position;
 		CellsOffset = Position * chunkSize;
 
@@ -78,7 +77,7 @@ public class LC_Chunk<Cell> where Cell : LC_Cell
 			if ( meshCollider )
 				UnityEngine.Object.Destroy( meshCollider.sharedMesh );
 
-			UnityEngine.Object.Destroy( Obj.gameObject );
+			UnityEngine.Object.Destroy( Obj );
 		}
 
 		if ( ParallelTask != null && !ParallelTask.IsCompleted && !ParallelTask.IsCanceled && !ParallelTask.IsFaulted )

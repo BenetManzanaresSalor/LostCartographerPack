@@ -1,8 +1,7 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
+public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 {
 	#region Attributes
 
@@ -12,7 +11,7 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
 
 	[Header( "Random generation settings" )]
 	[SerializeField] protected float HeightsMapDivisor = 25f;
-	[SerializeField] protected float MaxHeight = 10f;
+	[SerializeField] public float MaxHeight = 10f;
 	[SerializeField] protected bool RandomMapSeed = true;
 	[SerializeField] protected int MapSeed;
 	[SerializeField] [Range( 0, 64 )] protected int Octaves = 5;
@@ -22,8 +21,6 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
 	[Header( "Additional render settings" )]
 	[SerializeField] protected Vector2Int TextureColumnsAndRows = Vector2Int.one;
 	[SerializeField] [Range( 1, 4 )] protected float TextureMarginRelation = 3;
-	[SerializeField] protected bool UseHeightShader = false;
-	[SerializeField] protected Color[] HeightShaderColors;
 
 	#endregion
 
@@ -54,26 +51,13 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
 		base.Start();
 	}
 
-	protected override void IniTerrain()
-	{
-		if ( UseHeightShader )
-		{
-			RenderMaterial.SetFloat( "minHeight", 0 );
-			RenderMaterial.SetFloat( "maxHeight", MaxHeight );
-			RenderMaterial.SetInt( "n_colors", HeightShaderColors.Length );
-			RenderMaterial.SetColorArray( "colors", HeightShaderColors );
-		}
-
-		base.IniTerrain();
-	}
-
 	#endregion
 
 	#region Chunk creation
 
 	protected override LC_Chunk<LC_Cell> CreateChunkInstance( Vector2Int chunkPos )
 	{
-		return new LC_Chunk<LC_Cell>( new GameObject(), chunkPos, ChunkSize );
+		return new LC_Chunk<LC_Cell>( chunkPos, ChunkSize );
 	}
 
 	protected override LC_Cell[,] CreateCells( LC_Chunk<LC_Cell> chunk )
@@ -136,7 +120,7 @@ public class LC_Terrain : LC_GenericTerrain<LC_Cell, LC_Chunk<LC_Cell>>
 		chunk.UVs.Add( iniUV );
 	}
 
-	public void GetUVs( Vector2Int chunkPos, out Vector2 ini, out Vector2 end, LC_Chunk<LC_Cell> chunk )
+	protected virtual void GetUVs( Vector2Int chunkPos, out Vector2 ini, out Vector2 end, LC_Chunk<LC_Cell> chunk )
 	{
 		Vector2Int texPos = GetTexPos( chunk.Cells[chunkPos.x, chunkPos.y], chunk );
 

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk : LC_Chunk<Cell> where Cell : LC_Cell
+public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk : LC_Chunk<Cell> where Cell : LC_Cell
 {
 	#region Attributes
 
@@ -83,9 +83,6 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 	protected virtual void CreateChunk( Vector2Int chunkPos, bool ignoreParallel = false )
 	{
 		Chunk chunk = CreateChunkInstance( chunkPos );
-		chunk.Obj.transform.parent = this.transform;
-		chunk.Obj.name = "Chunk_" + chunkPos;
-		//chunk.Obj.transform.position = ChunkPosToReal( chunk.Position ); // TODO
 		ChunksLoading.Add( chunkPos, chunk );
 
 		if ( ParallelChunkLoading && !ignoreParallel )
@@ -170,6 +167,11 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 
 	protected virtual void CreateChunkMeshObj( Chunk chunk )
 	{
+		chunk.Obj = new GameObject();
+		chunk.Obj.transform.parent = this.transform;
+		chunk.Obj.name = "Chunk_" + chunk.Position;
+		//chunk.Obj.transform.position = ChunkPosToReal( chunk.Position ); // TODO
+
 		Mesh mesh = new Mesh
 		{
 			vertices = chunk.VerticesArray,
@@ -267,6 +269,10 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 							CreateChunkMeshObj( entry.Value );
 							CurrentChunks.Add( entry.Key, entry.Value );
 						}
+						else
+						{
+							entry.Value.Destroy();
+						}
 					}
 					else
 						break;
@@ -302,6 +308,10 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 			}
 		}
 
+		// Remove useless chunks
+		foreach ( Vector2Int chunkPos in chunksToUnload )
+			CurrentChunks.Remove( chunkPos );
+
 		lock ( ChunksLoadingLock )
 		{
 			// Ignore chunks that are loading
@@ -322,12 +332,7 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 				else
 					break;
 			}
-
 		}
-
-		// Remove useless chunks
-		foreach ( Vector2Int chunkPos in chunksToUnload )
-			CurrentChunks.Remove( chunkPos );
 	}
 
 	protected virtual Dictionary<Vector2Int, object> ComputeChunksNeeded()
@@ -341,8 +346,8 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 		{
 			int radius = ChunkRenderDistance + 1;
 
-			Vector2Int chunkPos;
 			Vector2Int topLeftCorner;
+			Vector2Int chunkPos = new Vector2Int();
 			int yIncrement = 1;
 			for ( int currentRadius = 1; currentRadius < radius; currentRadius++ )
 			{
@@ -353,7 +358,8 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 					yIncrement = ( x == 0 || x == currentRadius * 2 ) ? 1 : currentRadius * 2;
 					for ( int y = 0; y <= currentRadius * 2; y += yIncrement )
 					{
-						chunkPos = topLeftCorner + new Vector2Int( x, y );
+						chunkPos.x = topLeftCorner.x + x;
+						chunkPos.y = topLeftCorner.y + y;
 
 						// If isn't PlayerChunkPos (because is always loaded) and is needed
 						if ( chunkPos != PlayerChunkPos && IsChunkNeeded( chunkPos ) )
@@ -385,40 +391,54 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 		return TerrainPosToReal( cell.TerrainPos, cell.Height );
 	}
 
+	public virtual Vector3 ChunkPosToReal( Vector2Int chunkPosition )
+	{
+		return CurrentRealPos + new Vector3( chunkPosition.x * ChunkSize * CellSize.x, 0, chunkPosition.y * ChunkSize * CellSize.z );
+	}
+
 	public virtual Vector3Int RealPosToTerrain( Vector3 realPos )
 	{
 		Vector3 relativePos = realPos - CurrentRealPos + HalfChunk;
 		return new Vector3Int( (int)( relativePos.x / CellSize.x ), (int)( relativePos.y / CellSize.y ), (int)( relativePos.z / CellSize.z ) );
 	}
 
-	public virtual Vector2Int RealPosToChunk( Vector3 realPos )
+	public virtual Vector3Int GetPlayerTerrainPos()
 	{
-		Vector3Int terrainPos = RealPosToTerrain( realPos );
+		return RealPosToTerrain( Player.position );
+	}
 
-		Vector2Int res = new Vector2Int( terrainPos.x / ChunkSize, terrainPos.z / ChunkSize );
+	public virtual Vector2Int TerrainPosToChunk( Vector2Int terrainPos )
+	{
+		Vector2Int res = new Vector2Int( terrainPos.x / ChunkSize, terrainPos.y / ChunkSize );
 
 		if ( terrainPos.x < 0 )
 			res.x -= 1;
-		if ( terrainPos.z < 0 )
+		if ( terrainPos.y < 0 )
 			res.y -= 1;
 
 		return res;
 	}
 
-	public virtual Vector3 ChunkPosToReal( Vector2Int chunkPosition )
+	public virtual Vector2Int TerrainPosToChunk( Vector3Int terrainPos )
 	{
-		return CurrentRealPos + new Vector3( chunkPosition.x * ChunkSize * CellSize.x, 0, chunkPosition.y * ChunkSize * CellSize.z );
+		return TerrainPosToChunk( new Vector2Int( terrainPos.x, terrainPos.z ) );
 	}
 
-	public virtual Vector2Int TerrainPosToChunk( Vector2Int terrainPos )
+	public virtual Vector2Int RealPosToChunk( Vector3 realPos )
 	{
-		return new Vector2Int( terrainPos.x / ChunkSize, terrainPos.y / ChunkSize ); ;
+		Vector3Int terrainPos = RealPosToTerrain( realPos );
+		return TerrainPosToChunk( terrainPos );
 	}
 
 	public virtual Chunk GetChunk( Vector2Int terrainPos )
 	{
 		Vector2Int chunkPos = TerrainPosToChunk( terrainPos );
 		return CurrentChunks.ContainsKey( chunkPos ) ? CurrentChunks[chunkPos] : null;
+	}
+
+	public virtual Chunk GetChunk( Vector3Int terrainPos )
+	{
+		return GetChunk( new Vector2Int( terrainPos.x, terrainPos.z ) );
 	}
 
 	public virtual Chunk GetChunk( Vector3 realPos )
@@ -433,8 +453,15 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 		Chunk chunk = GetChunk( terrainPos );
 		if ( chunk != null )
 		{
+			// Adjust for the module operation
+			if ( terrainPos.x < 0 )
+				terrainPos.x--;
+			if ( terrainPos.y < 0 )
+				terrainPos.y--;
+
 			Vector2Int posInChunk = new Vector2Int( LC_Math.Mod( terrainPos.x, ChunkSize ),
 				LC_Math.Mod( terrainPos.y, ChunkSize ) );
+
 			cell = chunk.Cells[posInChunk.x, posInChunk.y];
 		}
 
@@ -448,11 +475,19 @@ public abstract class LC_GenericTerrain<Cell, Chunk> : MonoBehaviour where Chunk
 
 	protected virtual bool IsChunkNeeded( Vector2Int chunkPos )
 	{
-		Vector3 chunkRealPosition = ChunkPosToReal( chunkPos );
-		Vector3 offsetToPlayer = chunkRealPosition - Player.position;
-		offsetToPlayer.y = 0; // Ignore height offset
+		bool isNeeded = chunkPos == PlayerChunkPos;
 
-		return offsetToPlayer.magnitude <= ChunkRenderRealDistance;
+		// If isn't the player current chunk
+		if ( !isNeeded )
+		{
+			Vector3 chunkRealPosition = ChunkPosToReal( chunkPos );
+			Vector3 offsetToPlayer = chunkRealPosition - Player.position;
+			offsetToPlayer.y = 0; // Ignore height offset
+
+			isNeeded = offsetToPlayer.magnitude <= ChunkRenderRealDistance;
+		}
+
+		return isNeeded;
 	}
 
 	public virtual void DestroyTerrain( bool immediate )
