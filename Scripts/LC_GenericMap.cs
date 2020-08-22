@@ -6,9 +6,12 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	#region Settings
 
+	[Header( "General settings" )]
 	[SerializeField] protected Terrain TerrainToMap;
 	[SerializeField] protected Vector2Int CellsWidthAndHeight = new Vector2Int( 20, 20 );
 	[SerializeField] protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
+	[SerializeField] protected Vector2Int ResolutionDivider = new Vector2Int( 1, 1 );
+	[SerializeField] protected int FramesBtwUpdate = 1;
 	[SerializeField] protected bool UseMipMaps = false;
 
 	#endregion
@@ -43,25 +46,27 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	protected virtual void Update()
 	{
-		ComputePixels();
+		if ( Time.frameCount % FramesBtwUpdate == 0 )
+			ComputePixels();
 	}
 
 	protected virtual void ComputePixels()
 	{
-		Vector3Int playerTerrainPos = TerrainToMap.GetPlayerTerrainPos();
-		Vector2Int bottomLeftCorner = new Vector2Int( playerTerrainPos.x - ( CellsWidthAndHeight.x / 2 ), playerTerrainPos.z - ( CellsWidthAndHeight.y / 2 ) );
-		Vector2Int pixelsPerCell = TextureWidthAndHeight.Div( CellsWidthAndHeight );
+		Vector3Int referenceTerrainPos = TerrainToMap.GetPlayerTerrainPos();
+		Vector2Int bottomLeftCorner = new Vector2Int( referenceTerrainPos.x - ( CellsWidthAndHeight.x / 2 ), referenceTerrainPos.z - ( CellsWidthAndHeight.y / 2 ) );
+		Vector2Int cellsToGet = CellsWidthAndHeight.Div( ResolutionDivider );
+		Vector2Int pixelsPerCell = TextureWidthAndHeight.Div( cellsToGet );
 
 		Vector2Int cellPos = new Vector2Int();
 		Cell cell;
 		Color color;
 		int row, column;
-		for ( int x = 0; x < CellsWidthAndHeight.x; x++ )
+		for ( int x = 0; x < cellsToGet.x; x++ )
 		{
-			for ( int y = 0; y < CellsWidthAndHeight.y; y++ )
+			for ( int y = 0; y < cellsToGet.y; y++ )
 			{
-				cellPos.x = bottomLeftCorner.x + x;
-				cellPos.y = bottomLeftCorner.y + y;
+				cellPos.x = bottomLeftCorner.x + x * ResolutionDivider.x;
+				cellPos.y = bottomLeftCorner.y + y * ResolutionDivider.y;
 				cell = TerrainToMap.GetCell( cellPos );
 
 				color = GetColorPerCell( cell );

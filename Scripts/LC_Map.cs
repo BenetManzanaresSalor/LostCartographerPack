@@ -8,6 +8,7 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 
 	#region Settings
 
+	[Header( "Render settings" )]
 	[SerializeField] protected Color[] Colors;
 
 	#endregion
