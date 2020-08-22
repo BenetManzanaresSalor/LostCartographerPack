@@ -237,16 +237,13 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 			{
 				// Disable parallel settings
 				bool parallelChunk = myTarget.ParallelChunkLoading;
-				bool parallelCells = myTarget.ParallelChunkCellsLoading;
 				myTarget.ParallelChunkLoading = false;
-				myTarget.ParallelChunkCellsLoading = false;
 
 				// Generate
 				myTarget.Start();
 
 				// Restore parallel settings
 				myTarget.ParallelChunkLoading = parallelChunk;
-				myTarget.ParallelChunkCellsLoading = parallelCells;
 			}
 
 			if ( GUILayout.Button( "Destroy" ) )

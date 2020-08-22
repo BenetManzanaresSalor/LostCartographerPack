@@ -23,9 +23,8 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	[SerializeField] protected bool HasCollider = true;
 	[SerializeField] protected bool DynamicChunkLoading = true;
 	[SerializeField] protected bool ParallelChunkLoading = true;
-	[SerializeField] protected bool ParallelChunkCellsLoading = true;
 	[SerializeField] protected Material RenderMaterial;
-	[SerializeField] protected float MaxUpdateTime = 1f / 120f;
+	[SerializeField] protected float MaxUpdateTime = 1f / ( 60f * 2f );
 
 	#endregion
 
@@ -37,8 +36,10 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	protected Vector3 HalfChunk;
 	protected float ChunkRenderRealDistance;
 	protected Dictionary<Vector2Int, Chunk> ChunksLoading;
-	protected Dictionary<Vector2Int, Chunk> ChunksBuilt;
+	protected Dictionary<Vector2Int, Chunk> ChunksLoaded;
 	protected Dictionary<Vector2Int, Chunk> CurrentChunks;
+	protected Dictionary<Vector2Int, Chunk> ChunksLoadingForMap;
+	protected Dictionary<Vector2Int, Chunk> ChunksForMap;
 	protected int MaxVerticesPerRenderElem = 12;
 	protected float UpdateIniTime;
 
@@ -57,8 +58,11 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 		HalfChunk = new Vector3( CellSize.x, 0, CellSize.z ) * ( ChunkSize / 2 );
 		ChunksLoading = new Dictionary<Vector2Int, Chunk>();
-		ChunksBuilt = new Dictionary<Vector2Int, Chunk>();
+		ChunksLoaded = new Dictionary<Vector2Int, Chunk>();
 		CurrentChunks = new Dictionary<Vector2Int, Chunk>();
+
+		ChunksLoadingForMap = new Dictionary<Vector2Int, Chunk>();
+		ChunksForMap = new Dictionary<Vector2Int, Chunk>();
 
 		PlayerChunkPos = RealPosToChunk( Player.position );
 
@@ -69,46 +73,51 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	protected virtual void IniTerrain()
 	{
 		// Always load the current player chunk
-		CreateChunk( PlayerChunkPos, true );
+		LoadChunk( PlayerChunkPos, true );
 
 		// Load the other chunks
 		foreach ( Vector2Int chunkPos in LC_Math.AroundPositions( PlayerChunkPos, ChunkRenderDistance ) )
-			CreateChunk( chunkPos );
+			LoadChunk( chunkPos );
 	}
 
 	#endregion
 
 	#region Chunk creation
 
-	protected virtual void CreateChunk( Vector2Int chunkPos, bool ignoreParallel = false )
+	protected virtual void LoadChunk( Vector2Int chunkPos, bool ignoreParallel = false, bool isForMap = false )
 	{
 		Chunk chunk = CreateChunkInstance( chunkPos );
-		ChunksLoading.Add( chunkPos, chunk );
+		bool inParallel = ParallelChunkLoading && !ignoreParallel;
 
-		if ( ParallelChunkLoading && !ignoreParallel )
+		if ( isForMap )
+			ChunksLoadingForMap.Add( chunkPos, chunk );
+		else if ( inParallel )
+			ChunksLoading.Add( chunkPos, chunk );
+
+		if ( inParallel )
 		{
-			if ( !ParallelChunkCellsLoading )
-				chunk.Cells = CreateCells( chunk );
-
 			chunk.ParallelTask = Task.Run( () =>
 			{
-				if ( ParallelChunkCellsLoading )
-					chunk.Cells = CreateCells( chunk );
-
-				CreateMesh( chunk );
-				chunk.BuildMesh();
-
-				ChunkBuilt( chunkPos, chunk );
+				LoadChunkMethod( chunk, ignoreParallel, isForMap );
 			} );
 		}
 		else
 		{
-			chunk.Cells = CreateCells( chunk );
+			LoadChunkMethod( chunk, ignoreParallel, isForMap );
+		}
+	}
+
+	protected virtual void LoadChunkMethod( Chunk chunk, bool ignoreParallel, bool isForMap )
+	{
+		chunk.Cells = CreateCells( chunk );
+
+		if ( !isForMap )
+		{
 			CreateMesh( chunk );
 			chunk.BuildMesh();
-
-			ChunkBuilt( chunkPos, chunk );
 		}
+
+		ChunkLoaded( chunk, ignoreParallel, isForMap );
 	}
 
 	protected abstract Chunk CreateChunkInstance( Vector2Int chunkPos );
@@ -126,22 +135,30 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	public abstract Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
 
-	protected virtual void ChunkBuilt( Vector2Int chunkPos, Chunk chunk )
+	protected virtual void ChunkLoaded( Chunk chunk, bool ignoreParallel, bool isForMap )
 	{
-		if ( ParallelChunkLoading )
+		bool inParallel = ParallelChunkLoading && !ignoreParallel;
+
+		if ( inParallel )
+			Monitor.Enter( ChunksLoadingLock );
+
+		if ( isForMap )
 		{
-			lock ( ChunksLoadingLock )
-			{
-				ChunksLoading.Remove( chunk.Position );
-				ChunksBuilt.Add( chunkPos, chunk );
-			}
+			ChunksLoadingForMap.Remove( chunk.Position );
+			ChunksForMap.Add( chunk.Position, chunk );
 		}
-		else
+		else if ( inParallel )
+		{
+			ChunksLoading.Remove( chunk.Position );
+			ChunksLoaded.Add( chunk.Position, chunk );
+		}
+
+		if ( inParallel )
+			Monitor.Exit( ChunksLoadingLock );
+		else if ( !isForMap )
 		{
 			CreateChunkMeshObj( chunk );
-
-			ChunksLoading.Remove( chunk.Position );
-			CurrentChunks.Add( chunkPos, chunk );
+			CurrentChunks.Add( chunk.Position, chunk );
 		}
 	}
 
@@ -219,7 +236,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 		// Check chunk built parallelly (if remains time)
 		if ( ParallelChunkLoading && InMaxUpdateTime() )
-			CreateBuiltChunks();
+			CreateLoadedChunks();
 
 		// Update chunks needed (if remains time)
 		if ( DynamicChunkLoading && InMaxUpdateTime() )
@@ -229,18 +246,18 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	protected virtual void CheckPlayerCurrentChunk()
 	{
 		Monitor.Enter( ChunksLoadingLock );
-		if ( !CurrentChunks.ContainsKey( PlayerChunkPos ) && !ChunksBuilt.ContainsKey( PlayerChunkPos ) )
+		if ( !CurrentChunks.ContainsKey( PlayerChunkPos ) && !ChunksLoaded.ContainsKey( PlayerChunkPos ) )
 		{
 			bool isLoading = ChunksLoading.TryGetValue( PlayerChunkPos, out Chunk playerChunk );
 			Monitor.Exit( ChunksLoadingLock );
 			if ( isLoading )
 			{
 				playerChunk.ParallelTask.Wait();  // Wait parallel loading to end					
-				CreateBuiltChunks();    // Built the chunk (and the others if are needed)
+				CreateLoadedChunks();    // Built the chunk (and the others if are needed)
 			}
 			else
 			{
-				CreateChunk( PlayerChunkPos, true );    // Ignore parallel because can continue playing without this chunk
+				LoadChunk( PlayerChunkPos, true );    // Ignore parallel because can continue playing without this chunk
 			}
 		}
 		else
@@ -252,15 +269,13 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		return ( Time.realtimeSinceStartup - UpdateIniTime ) <= MaxUpdateTime;
 	}
 
-	protected virtual bool CreateBuiltChunks()
+	protected virtual void CreateLoadedChunks()
 	{
-		bool someChunkLoaded = false;
-
-		if ( ChunksBuilt.Count > 0 )
+		if ( ChunksLoaded.Count > 0 )
 		{
-			if ( Monitor.TryEnter( ChunksLoadingLock ) )
+			lock ( ChunksLoadingLock )
 			{
-				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksBuilt )
+				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoaded )
 				{
 					if ( InMaxUpdateTime() )
 					{
@@ -277,25 +292,20 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 					else
 						break;
 				}
-				ChunksBuilt.Clear();
-				Monitor.Exit( ChunksLoadingLock );
-
-				someChunkLoaded = true;
+				ChunksLoaded.Clear();
 			}
 		}
-
-		return someChunkLoaded;
 	}
 
 	protected virtual void UpdateChunks()
 	{
 		Dictionary<Vector2Int, object> chunksNeeded = ComputeChunksNeeded(); // Use a dictionary for faster searchs
 
-		// Check chunks already loaded
-		List<Vector2Int> chunksToUnload = new List<Vector2Int>();
+		// Check chunks already created
+		List<Vector2Int> chunksToDestroy = new List<Vector2Int>();
 		foreach ( KeyValuePair<Vector2Int, Chunk> entry in CurrentChunks )
 		{
-			// If already loaded, don't reload
+			// If already created, don't reload
 			if ( chunksNeeded.ContainsKey( entry.Key ) )
 			{
 				chunksNeeded.Remove( entry.Key );
@@ -303,13 +313,13 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 			// If don't needed, unload
 			else
 			{
-				chunksToUnload.Add( entry.Key );
+				chunksToDestroy.Add( entry.Key );
 				entry.Value.Destroy();
 			}
 		}
 
-		// Remove useless chunks
-		foreach ( Vector2Int chunkPos in chunksToUnload )
+		// Remove chunks don't needed
+		foreach ( Vector2Int chunkPos in chunksToDestroy )
 			CurrentChunks.Remove( chunkPos );
 
 		lock ( ChunksLoadingLock )
@@ -319,8 +329,8 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 				if ( chunksNeeded.ContainsKey( entry.Key ) )
 					chunksNeeded.Remove( entry.Key );
 
-			// Ignore chunks that are already built
-			foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksBuilt )
+			// Ignore chunks that are already loaded
+			foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoaded )
 				if ( chunksNeeded.ContainsKey( entry.Key ) )
 					chunksNeeded.Remove( entry.Key );
 
@@ -328,7 +338,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 			foreach ( KeyValuePair<Vector2Int, object> entry in chunksNeeded )
 			{
 				if ( InMaxUpdateTime() )
-					CreateChunk( entry.Key );
+					LoadChunk( entry.Key );
 				else
 					break;
 			}
@@ -374,7 +384,52 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	#endregion
 
-	#region Auxiliar
+	#region Mapping
+
+	public virtual void UpdateChunksForMap( Vector2Int bottomLeftPos, Vector2Int topRightPos, System.Func<bool> inMaxUpdateTime )
+	{
+		Vector2Int bottomLeftChunkPos = TerrainPosToChunk( bottomLeftPos );
+		Vector2Int topRightChunkPos = TerrainPosToChunk( topRightPos );
+		Vector2Int mapSize = topRightChunkPos - bottomLeftChunkPos;
+
+		// Destroy the don't needed chunks
+		List<Vector2Int> chunksToDestroy = new List<Vector2Int>();
+		foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksForMap )
+			if ( entry.Key.x < bottomLeftChunkPos.x || entry.Key.x > topRightChunkPos.x ||
+				entry.Key.y < bottomLeftChunkPos.y || entry.Key.y > topRightChunkPos.y )
+			{
+				entry.Value.Destroy();
+				chunksToDestroy.Add( entry.Key );
+			}
+
+		foreach ( Vector2Int pos in chunksToDestroy )
+			ChunksForMap.Remove( pos );
+
+		// Load the chunks needed for map
+		Vector2Int chunkPos = new Vector2Int();
+		for ( int x = 0; x <= mapSize.x; x++ )
+		{
+			for ( int y = 0; y <= mapSize.y; y++ )
+			{
+				chunkPos.x = bottomLeftChunkPos.x + x;
+				chunkPos.y = bottomLeftChunkPos.y + y;
+
+				// If no loaded neither loading
+				if ( !CurrentChunks.ContainsKey( chunkPos ) &&
+					!ChunksLoaded.ContainsKey( chunkPos ) &&
+					!ChunksLoading.ContainsKey( chunkPos ) &&
+					!ChunksForMap.ContainsKey( chunkPos ) &&
+					!ChunksLoadingForMap.ContainsKey( chunkPos ) )
+				{
+					LoadChunk( chunkPos, ParallelChunkLoading, true );
+				}
+			}
+		}
+	}
+
+	#endregion
+
+	#region External use
 
 	public virtual Vector3 TerrainPosToReal( int x, float height, int z )
 	{
@@ -446,11 +501,20 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		return GetChunk( RealPosToTerrain( realPos ) );
 	}
 
-	public virtual Cell GetCell( Vector2Int terrainPos )
+	public virtual Cell GetCell( Vector2Int terrainPos, bool isForMap = false )
 	{
 		Cell cell = null;
 
 		Chunk chunk = GetChunk( terrainPos );
+
+		// Check ChunksForMap
+		if ( chunk == null && isForMap )
+		{
+			Vector2Int chunkPos = TerrainPosToChunk( terrainPos );
+			ChunksForMap.TryGetValue( chunkPos, out chunk );
+		}
+
+		// Get cell from the chunk if it exists
 		if ( chunk != null )
 		{
 			// Adjust for the module operation
@@ -468,12 +532,12 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		return cell;
 	}
 
-	public virtual Cell GetCell( Vector3 realPos )
+	public virtual Cell GetCell( Vector3 realPos, bool isForMap = false )
 	{
-		return GetCell( RealPosToTerrain( realPos ) );
+		return GetCell( RealPosToTerrain( realPos ), isForMap );
 	}
 
-	protected virtual bool IsChunkNeeded( Vector2Int chunkPos )
+	public virtual bool IsChunkNeeded( Vector2Int chunkPos )
 	{
 		bool isNeeded = chunkPos == PlayerChunkPos;
 
@@ -524,12 +588,12 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 				ChunksLoading.Clear();
 			}
 
-			if ( ChunksBuilt != null )
+			if ( ChunksLoaded != null )
 			{
-				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksBuilt )
+				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoaded )
 					entry.Value.Destroy();
 
-				ChunksBuilt.Clear();
+				ChunksLoaded.Clear();
 			}
 		}
 	}

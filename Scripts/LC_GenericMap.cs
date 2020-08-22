@@ -9,17 +9,22 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 	[Header( "General settings" )]
 	[SerializeField] protected Terrain TerrainToMap;
 	[SerializeField] protected Vector2Int CellsWidthAndHeight = new Vector2Int( 20, 20 );
-	[SerializeField] protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
 	[SerializeField] protected Vector2Int ResolutionDivider = new Vector2Int( 1, 1 );
-	[SerializeField] protected int FramesBtwUpdate = 1;
+	[SerializeField] protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
+	[SerializeField] protected int FramesBtwUpdates = 1;
+	[SerializeField] protected float MaxUpdateTime = 1f / ( 60f * 2f );
+	[SerializeField] protected bool MapNonLoadedChunks;
 	[SerializeField] protected bool UseMipMaps = false;
 
 	#endregion
 
 	#region Function attributes
 
+	protected Vector2Int ReferencePos;
 	protected Texture2D MapTexture;
 	protected Color[] TextureColors;
+	protected Vector2Int HalfMapOffset;
+	protected float UpdateIniTime;
 
 	#endregion
 
@@ -46,14 +51,30 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	protected virtual void Update()
 	{
-		if ( Time.frameCount % FramesBtwUpdate == 0 )
-			ComputePixels();
+		if ( Time.frameCount % FramesBtwUpdates == 0 )
+		{
+			UpdateIniTime = Time.realtimeSinceStartup;
+			HalfMapOffset = new Vector2Int( CellsWidthAndHeight.x / 2, CellsWidthAndHeight.y / 2 ); // Update HalfMapOffset for map generation
+			ReferencePos = GetReferencePos();
+
+			if ( MapNonLoadedChunks && InMaxUpdateTime() )
+				UpdateTerrainToMapChunks();
+
+			if ( InMaxUpdateTime() )
+				ComputePixels();
+		}
+	}
+
+	protected abstract Vector2Int GetReferencePos();
+
+	protected virtual bool InMaxUpdateTime()
+	{
+		return ( Time.realtimeSinceStartup - UpdateIniTime ) <= MaxUpdateTime;
 	}
 
 	protected virtual void ComputePixels()
 	{
-		Vector3Int referenceTerrainPos = TerrainToMap.GetPlayerTerrainPos();
-		Vector2Int bottomLeftCorner = new Vector2Int( referenceTerrainPos.x - ( CellsWidthAndHeight.x / 2 ), referenceTerrainPos.z - ( CellsWidthAndHeight.y / 2 ) );
+		Vector2Int bottomLeftCorner = ReferencePos - HalfMapOffset;
 		Vector2Int cellsToGet = CellsWidthAndHeight.Div( ResolutionDivider );
 		Vector2Int pixelsPerCell = TextureWidthAndHeight.Div( cellsToGet );
 
@@ -67,7 +88,7 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 			{
 				cellPos.x = bottomLeftCorner.x + x * ResolutionDivider.x;
 				cellPos.y = bottomLeftCorner.y + y * ResolutionDivider.y;
-				cell = TerrainToMap.GetCell( cellPos );
+				cell = TerrainToMap.GetCell( cellPos, MapNonLoadedChunks );
 
 				color = GetColorPerCell( cell );
 				for ( int i = 0; i < pixelsPerCell.y; i++ )
@@ -87,6 +108,13 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 	}
 
 	protected abstract Color GetColorPerCell( Cell cell );
+
+	protected virtual void UpdateTerrainToMapChunks()
+	{
+		Vector2Int bottomLeftCorner = ReferencePos - HalfMapOffset;
+		Vector2Int topRightCorner = ReferencePos + HalfMapOffset;
+		TerrainToMap.UpdateChunksForMap( bottomLeftCorner, topRightCorner, InMaxUpdateTime );
+	}
 
 	#endregion
 }

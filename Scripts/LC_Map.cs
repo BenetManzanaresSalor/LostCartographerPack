@@ -56,5 +56,11 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 		return color;
 	}
 
+	protected override Vector2Int GetReferencePos()
+	{
+		Vector3Int pos = TerrainToMap.GetPlayerTerrainPos();
+		return new Vector2Int( pos.x, pos.z );
+	}
+
 	#endregion
 }

@@ -156,7 +156,6 @@ MonoBehaviour:
   HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
-  ParallelChunkCellsLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
   MaxUpdateTime: 0.008333334
   AutoUpdate: 0
@@ -241,8 +240,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainToMap: {fileID: 1052120542}
-  CellsWidthAndHeight: {x: 50, y: 50}
+  CellsWidthAndHeight: {x: 400, y: 400}
+  ResolutionDivider: {x: 4, y: 4}
   TextureWidthAndHeight: {x: 200, y: 200}
+  FramesBtwUpdates: 5
+  MaxUpdateTime: 0.008333334
+  MapNonLoadedChunks: 1
   UseMipMaps: 0
   Colors:
   - {r: 0.9215687, g: 0.89019614, b: 0.8078432, a: 1}
@@ -312,12 +315,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 2, z: 2}
-  ChunkSizeLevel: 4
-  ChunkRenderDistance: 5
+  ChunkSizeLevel: 5
+  ChunkRenderDistance: 10
   HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
-  ParallelChunkCellsLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
   MaxUpdateTime: 0.008333335
   AutoUpdate: 0
