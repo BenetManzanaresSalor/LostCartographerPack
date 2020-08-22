@@ -24,7 +24,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	[SerializeField] protected bool DynamicChunkLoading = true;
 	[SerializeField] protected bool ParallelChunkLoading = true;
 	[SerializeField] protected Material RenderMaterial;
-	[SerializeField] protected float MaxUpdateTime = 1f / ( 60f * 2f );
+	[SerializeField] [Min(float.MinValue)] protected float MaxUpdateTime = 1f / ( 60f * 2f );
 
 	#endregion
 
@@ -40,7 +40,6 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	protected Dictionary<Vector2Int, Chunk> CurrentChunks;
 	protected Dictionary<Vector2Int, Chunk> ChunksLoadingForMap;
 	protected Dictionary<Vector2Int, Chunk> ChunksForMap;
-	protected int MaxVerticesPerRenderElem = 12;
 	protected float UpdateIniTime;
 
 	protected object ChunksLoadingLock = new object();

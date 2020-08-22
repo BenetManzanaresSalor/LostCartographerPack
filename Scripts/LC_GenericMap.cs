@@ -8,7 +8,8 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	[Header( "General settings" )]
 	[SerializeField] protected Terrain TerrainToMap;
-	[SerializeField] protected Vector2Int CellsWidthAndHeight = new Vector2Int( 20, 20 );
+	[SerializeField] protected RenderTexture TargetTexture;
+	[SerializeField] protected Vector2Int NumCellsWidthAndHeight = new Vector2Int( 20, 20 );
 	[SerializeField] protected Vector2Int ResolutionDivider = new Vector2Int( 1, 1 );
 	[SerializeField] protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
 	[SerializeField] protected int FramesBtwUpdates = 1;
@@ -22,9 +23,10 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	protected Vector2Int ReferencePos;
 	protected Texture2D MapTexture;
-	protected Color[] TextureColors;
-	protected Vector2Int HalfMapOffset;
+	protected Color32[] TextureColors;
 	protected float UpdateIniTime;
+	protected Vector2Int HalfMapOffset;
+	protected Vector2Int CurrentCellPosInTex;
 
 	#endregion
 
@@ -35,15 +37,9 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 	protected virtual void Start()
 	{
 		MapTexture = new Texture2D( TextureWidthAndHeight.x, TextureWidthAndHeight.y );
-		TextureColors = new Color[MapTexture.width * MapTexture.height];
-
-		BindTexture();
+		TextureColors = new Color32[MapTexture.width * MapTexture.height];
+		CurrentCellPosInTex = Vector2Int.zero;
 	}
-
-	/// <summary>
-	/// Bind the texture with the renderer (for example, a RawImage)
-	/// </summary>
-	protected abstract void BindTexture();
 
 	#endregion
 
@@ -54,7 +50,7 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 		if ( Time.frameCount % FramesBtwUpdates == 0 )
 		{
 			UpdateIniTime = Time.realtimeSinceStartup;
-			HalfMapOffset = new Vector2Int( CellsWidthAndHeight.x / 2, CellsWidthAndHeight.y / 2 ); // Update HalfMapOffset for map generation
+			HalfMapOffset = new Vector2Int( NumCellsWidthAndHeight.x / 2, NumCellsWidthAndHeight.y / 2 ); // Update HalfMapOffset for map generation
 			ReferencePos = GetReferencePos();
 
 			if ( MapNonLoadedChunks && InMaxUpdateTime() )
@@ -75,39 +71,47 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 	protected virtual void ComputePixels()
 	{
 		Vector2Int bottomLeftCorner = ReferencePos - HalfMapOffset;
-		Vector2Int cellsToGet = CellsWidthAndHeight.Div( ResolutionDivider );
+		Vector2Int cellsToGet = NumCellsWidthAndHeight.Div( ResolutionDivider );
 		Vector2Int pixelsPerCell = TextureWidthAndHeight.Div( cellsToGet );
 
-		Vector2Int cellPos = new Vector2Int();
+		// Compute pixels
+		Vector2Int cellPosInTexture = new Vector2Int();
+		Vector2Int cellPosInTerrain = new Vector2Int();
 		Cell cell;
 		Color color;
 		int row, column;
-		for ( int x = 0; x < cellsToGet.x; x++ )
+		for ( int x = 0; x < cellsToGet.x && InMaxUpdateTime(); x++ )
 		{
-			for ( int y = 0; y < cellsToGet.y; y++ )
+			for ( int y = 0; y < cellsToGet.y && InMaxUpdateTime(); y++ )
 			{
-				cellPos.x = bottomLeftCorner.x + x * ResolutionDivider.x;
-				cellPos.y = bottomLeftCorner.y + y * ResolutionDivider.y;
-				cell = TerrainToMap.GetCell( cellPos, MapNonLoadedChunks );
+				cellPosInTexture.x = ( CurrentCellPosInTex.x + x ) % cellsToGet.x;
+				cellPosInTexture.y = ( CurrentCellPosInTex.y + y ) % cellsToGet.y;
+				cellPosInTerrain = bottomLeftCorner + cellPosInTexture * ResolutionDivider;
 
+				cell = TerrainToMap.GetCell( cellPosInTerrain, MapNonLoadedChunks );
 				color = GetColorPerCell( cell );
 				for ( int i = 0; i < pixelsPerCell.y; i++ )
 				{
-					row = pixelsPerCell.y * y + i;
+					row = cellPosInTexture.y * pixelsPerCell.y + i;
 					for ( int j = 0; j < pixelsPerCell.x; j++ )
 					{
-						column = pixelsPerCell.x * x + j;
+						column = cellPosInTexture.x * pixelsPerCell.x + j;
 						TextureColors[row * MapTexture.height + column] = color;
 					}
 				}
 			}
 		}
 
-		MapTexture.SetPixels( TextureColors );
-		MapTexture.Apply( UseMipMaps );
+		// Update CurrentCellPosInTex
+		CurrentCellPosInTex = cellPosInTexture;
+
+		// Set texture
+		MapTexture.SetPixels32( TextureColors );
+		MapTexture.Apply();
+		Graphics.Blit( MapTexture, TargetTexture );
 	}
 
-	protected abstract Color GetColorPerCell( Cell cell );
+	protected abstract Color32 GetColorPerCell( Cell cell );
 
 	protected virtual void UpdateTerrainToMapChunks()
 	{

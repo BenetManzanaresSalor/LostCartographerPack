@@ -1,6 +1,8 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
+public enum LC_Terrain_RenderType { HEIGHT_DISCRETE, HEIGHT_CONTINUOUS };
+
 public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 {
 	#region Attributes
@@ -19,8 +21,10 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 	[SerializeField] protected float Lacunarity = 2f;
 
 	[Header( "Additional render settings" )]
+	[SerializeField] protected LC_Terrain_RenderType RenderType;
 	[SerializeField] protected Vector2Int TextureColumnsAndRows = Vector2Int.one;
 	[SerializeField] [Range( 1, 4 )] protected float TextureMarginRelation = 3;
+	[SerializeField] protected Color[] HeightMaterialColors;
 
 	#endregion
 
@@ -47,6 +51,14 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 		RandomGenerator = new System.Random();
 		if ( RandomMapSeed )
 			MapSeed = RandomGenerator.Next();
+
+		if ( RenderType == LC_Terrain_RenderType.HEIGHT_CONTINUOUS )
+		{
+			RenderMaterial.SetFloat( "minHeight", transform.position.y );
+			RenderMaterial.SetFloat( "maxHeight", transform.position.y + MaxHeight );
+			RenderMaterial.SetInt( "numColors", HeightMaterialColors.Length );
+			RenderMaterial.SetColorArray( "colors", HeightMaterialColors );
+		}
 
 		base.Start();
 	}

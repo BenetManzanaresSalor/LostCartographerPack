@@ -166,8 +166,10 @@ MonoBehaviour:
   Octaves: 5
   Persistance: 0.5
   Lacunarity: 2
+  RenderType: 0
   TextureColumnsAndRows: {x: 1, y: 3}
   TextureMarginRelation: 3
+  HeightMaterialColors: []
   UseSplitAndMerge: 1
 --- !u!4 &596646710
 Transform:
@@ -202,7 +204,7 @@ GameObject:
   - component: {fileID: 861188630}
   - component: {fileID: 861188631}
   m_Layer: 5
-  m_Name: Map
+  m_Name: LC_Map
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -240,15 +242,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TerrainToMap: {fileID: 1052120542}
-  CellsWidthAndHeight: {x: 400, y: 400}
+  TargetTexture: {fileID: 8400000, guid: 13cbf437ffd43e249975439a48aaaa05, type: 2}
+  NumCellsWidthAndHeight: {x: 400, y: 400}
   ResolutionDivider: {x: 4, y: 4}
   TextureWidthAndHeight: {x: 200, y: 200}
-  FramesBtwUpdates: 5
+  FramesBtwUpdates: 1
   MaxUpdateTime: 0.008333334
   MapNonLoadedChunks: 1
   UseMipMaps: 0
+  RenderType: 0
   Colors:
-  - {r: 0.9215687, g: 0.89019614, b: 0.8078432, a: 1}
+  - {r: 0.9137255, g: 0.83137256, b: 0.6156863, a: 1}
   - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
   - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
 --- !u!114 &861188631
@@ -269,7 +273,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 0}
+  m_Texture: {fileID: 8400000, guid: 13cbf437ffd43e249975439a48aaaa05, type: 2}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -320,8 +324,8 @@ MonoBehaviour:
   HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
-  RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
-  MaxUpdateTime: 0.008333335
+  RenderMaterial: {fileID: 2100000, guid: af7088dc06a820749bbdfdcf052aeb5d, type: 2}
+  MaxUpdateTime: 0.004166667
   AutoUpdate: 0
   HeightsMapDivisor: 50
   MaxHeight: 25
@@ -330,8 +334,13 @@ MonoBehaviour:
   Octaves: 4
   Persistance: 0.3
   Lacunarity: 2.5
+  RenderType: 1
   TextureColumnsAndRows: {x: 1, y: 3}
   TextureMarginRelation: 3
+  HeightMaterialColors:
+  - {r: 0.9150943, g: 0.8329323, b: 0.617257, a: 1}
+  - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
+  - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
 --- !u!4 &1052120543
 Transform:
   m_ObjectHideFlags: 0

@@ -19,7 +19,7 @@
 
 		float minHeight;
 		float maxHeight;
-		int n_colors;
+		int numColors;
 		float3 colors[maxColorCount];
 
 		struct Input
@@ -41,7 +41,7 @@
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
 			float heightPercentage = inverseLerp(minHeight, maxHeight, IN.worldPos.y);
-			float colorFloatIndex = heightPercentage * (n_colors - 1);
+			float colorFloatIndex = heightPercentage * (numColors - 1);
 			int colorIndex = (int)colorFloatIndex;
 			float indexDecimals = colorFloatIndex - (float)colorIndex;
 

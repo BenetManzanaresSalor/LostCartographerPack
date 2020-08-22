@@ -4,11 +4,12 @@ using UnityEngine.UI;
 [RequireComponent( typeof( RawImage ) )]
 public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 {
-	#region Attributes
+	#region Attributes	
 
 	#region Settings
 
-	[Header( "Render settings" )]
+	[Header( "Additional render settings" )]
+	[SerializeField] protected LC_Terrain_RenderType RenderType;
 	[SerializeField] protected Color[] Colors;
 
 	#endregion
@@ -21,21 +22,11 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 
 	#endregion
 
-	#region Initialization
-
-	protected override void BindTexture()
-	{
-		Renderer = GetComponent<RawImage>();
-		Renderer.texture = MapTexture;
-	}
-
-	#endregion
-
 	#region Texture computation
 
-	protected override Color GetColorPerCell( LC_Cell cell )
+	protected override Color32 GetColorPerCell( LC_Cell cell )
 	{
-		Color color;
+		Color32 color;
 
 		if ( cell == null )
 		{
@@ -43,14 +34,23 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 		}
 		else
 		{
-			float heightPercentage = Mathf.Clamp( Mathf.InverseLerp( 0, TerrainToMap.MaxHeight, cell.Height ), 0, 1f );
+			float heightPercentage = Mathf.Clamp( Mathf.InverseLerp( 0, TerrainToMap.MaxHeight, cell.Height ), 0, 0.99f );
 			float colorFloatIndex = heightPercentage * ( Colors.Length - 1 );
-			int colorIndex = Mathf.RoundToInt( colorFloatIndex );
-			color = Colors[colorIndex];
 
-			/*int colorIndex = (int)colorFloatIndex;
-			float indexDecimals = colorFloatIndex - colorIndex;
-			color = ( 1 - indexDecimals ) * Colors[colorIndex] + indexDecimals * Colors[colorIndex + 1];*/
+			switch ( RenderType )
+			{
+				case LC_Terrain_RenderType.HEIGHT_CONTINUOUS:
+					int colorIndex = (int)colorFloatIndex;
+					float indexDecimals = colorFloatIndex - colorIndex;
+					color = ( 1 - indexDecimals ) * Colors[colorIndex] + indexDecimals * Colors[colorIndex + 1];
+					break;
+				case LC_Terrain_RenderType.HEIGHT_DISCRETE:
+					color = Colors[Mathf.RoundToInt( colorFloatIndex )];
+					break;
+				default:
+					color = Color.black;
+					break;
+			}
 		}
 
 		return color;
