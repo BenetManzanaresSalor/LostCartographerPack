@@ -2,6 +2,9 @@
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// Default cell class of the Lost Cartographer Pack.
+/// </summary>
 public class LC_Cell
 {
 	public Vector2Int TerrainPos;
@@ -14,6 +17,9 @@ public class LC_Cell
 	}
 }
 
+/// <summary>
+/// Default chunk class of the Lost Cartographer Pack.
+/// </summary>
 public class LC_Chunk<Cell> where Cell : LC_Cell
 {
 	public GameObject Obj;

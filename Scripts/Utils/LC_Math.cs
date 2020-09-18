@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Math and algorithm helper class for Lost Cartographer Pack.
+/// </summary>
 public static class LC_Math
 {
-	#region Random generation
+	#region Perlin noise map generation
 
 	/// <summary>
 	/// Generates a random float matrix using perlin noise.
@@ -36,10 +39,9 @@ public static class LC_Math
 		if ( scaleDivisor <= 0 )
 			scaleDivisor = 0.0001f;
 
-		// Initialize octaves (and optionally min and max perlin values for normalization)
+		// Initialize octaves (and optionally min and max perlin value for global normalization)
 		System.Random randGen = new System.Random( seed );
 		Vector2[] octavesOffsets = new Vector2[octaves];
-
 		if ( useGlobalNormalization )
 			maxPerlinValue = 0;
 
@@ -57,7 +59,7 @@ public static class LC_Math
 
 		if ( useGlobalNormalization )
 		{
-			maxPerlinValue /= 2f; // Adapt maxPerlinValue to more probable values
+			maxPerlinValue /= 1.5f; // Adapt maxPerlinValue (theoric) to more probable values
 			minPerlinValue = -maxPerlinValue;
 		}
 
@@ -104,7 +106,7 @@ public static class LC_Math
 
 	#endregion
 
-	#region Spatial decomposition
+	#region Split and Merge
 
 	/// <summary>
 	/// Struct to store the fundamental information of a sector: initial and final position as a quadrilateral.
@@ -144,7 +146,6 @@ public static class LC_Math
 		/// <returns>If the original sector is mergeable with other assuming that the other is positioned in at positive direction ( right, bottom or both ).</returns>
 		public static bool AreMergeableNotInvertible<T>( QuadTreeSector original, QuadTreeSector other, Func<int, int, T> get, Func<T, T, bool> equals )
 		{
-			// TODO : Check if is really mergeable when contained
 			bool notContained = original.Initial != other.Initial && original.Final != other.Final && original.Initial != other.Final && original.Final != other.Initial;
 			bool horitzontalMatch = original.Final.x == other.Initial.x - 1 && original.Final.y == other.Final.y && original.Initial.y == other.Initial.y;
 			bool verticalMatch = original.Final.y == other.Final.y - 1 && original.Final.x == other.Final.x && original.Initial.x == other.Initial.x;
@@ -203,11 +204,11 @@ public static class LC_Math
 	/// <param name="get">Getter of the matrix values.</param>
 	/// <param name="equals">Comparator of matrix elements. Must return true if a value is compared with himself.</param>
 	/// <param name="size">Size of the matrix ( columns and rows ). Must be power of two or a exception will be thrown.</param>
-	/// <param name="mergeSectors">If is true : some of the mergeable sectors ( equals and have a common size ) will be merged. Implies an additional cost but fewer sectors will be generated.</param>
+	/// <param name="mergeSectors">If is true : Some of the mergeable sectors ( equals, contiguous and have a compatible size ) will be merged. Implies an additional cost but fewer sectors will be generated.</param>
 	/// <returns>List of the obtained sectors.</returns>
-	public static List<QuadTreeSector> QuadTree<T>( Func<int, int, T> get, Func<T, T, bool> equals, int size, bool mergeSectors )
+	public static List<QuadTreeSector> SplitAndMerge<T>( Func<int, int, T> get, Func<T, T, bool> equals, int size, bool mergeSectors )
 	{
-		return QuadTree( get, equals, new QuadTreeSector( 0, 0, size - 1, size - 1 ), mergeSectors );
+		return SplitAndMerge( get, equals, new QuadTreeSector( 0, 0, size - 1, size - 1 ), mergeSectors );
 	}
 
 	/// <summary>
@@ -220,7 +221,7 @@ public static class LC_Math
 	/// <param name="sector">Sector to apply the quadtree algorithm.</param>
 	/// <param name="mergeSectors">If is true : some of the mergeable sectors ( equals and have a common size ) will be merged. Implies an additional cost but fewer sectors will be generated.</param>
 	/// <returns>List of the obtained sectors.</returns>
-	public static List<QuadTreeSector> QuadTree<T>( Func<int, int, T> get, Func<T, T, bool> equals, QuadTreeSector sector, bool mergeSectors )
+	public static List<QuadTreeSector> SplitAndMerge<T>( Func<int, int, T> get, Func<T, T, bool> equals, QuadTreeSector sector, bool mergeSectors )
 	{
 		List<QuadTreeSector> result = new List<QuadTreeSector>();
 		List<QuadTreeSector> currentSectors = new List<QuadTreeSector>();
@@ -293,7 +294,7 @@ public static class LC_Math
 		}
 		else
 		{
-			result.AddRange( QuadTree( get, equals, sector, mergeSectors ) );
+			result.AddRange( SplitAndMerge( get, equals, sector, mergeSectors ) );
 		}
 
 		return result;
@@ -439,7 +440,6 @@ public static class LC_Math
 		return ( value != 0 ) && ( ( value & ( value - 1 ) ) == 0 );
 	}
 
-	// TODO : Add a version with min square radius
 	/// <summary>
 	/// Obtains the adjacent positions in a square radius, excluding the center.
 	/// </summary>

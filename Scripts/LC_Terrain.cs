@@ -1,30 +1,68 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-public enum LC_Terrain_RenderType { HEIGHT_DISCRETE, HEIGHT_CONTINUOUS };
+/// <summary>
+/// Render types for the LC_Terrain.
+/// </summary>
+public enum LC_Terrain_RenderType : int
+{
+	DEFAULT_UVs = 0,
+	HEIGHT_DISCRETE = 1,
+	HEIGHT_CONTINUOUS = 2
+};
 
+/// <summary>
+/// Default procedural terrain of Lost Cartographer Pack.
+/// </summary>
 public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 {
 	#region Attributes
 
-	#region Settings	
+	#region Settings
 
-	[SerializeField] public bool AutoUpdate = false;    // If true, regenerates the terrain when any setting is changed
+	[SerializeField]
+	[Tooltip( "If true, regenerates the terrain when any setting is changed." )]
+	public bool AutoUpdate = false;
 
 	[Header( "Random generation settings" )]
-	[SerializeField] protected float HeightsMapDivisor = 25f;
-	[SerializeField] public float MaxHeight = 10f;
-	[SerializeField] protected bool RandomMapSeed = true;
-	[SerializeField] protected int MapSeed;
-	[SerializeField] [Range( 0, 64 )] protected int Octaves = 5;
-	[SerializeField] [Range( 0, 1 )] protected float Persistance = 0.5f;
-	[SerializeField] protected float Lacunarity = 2f;
+	[SerializeField]
+	[Tooltip( "Divisor used at heights computation to smooth the terrain." )]
+	protected float HeightsDivisor = 25f;
+	[SerializeField]
+	[Tooltip( "Maxium height for any cell.\nThe minimum height is always 0." )]
+	public float MaxHeight = 10f;
+	[SerializeField]
+	[Tooltip( "If use a random seed for each terrain generation." )]
+	protected bool UseRandomSeed = true;
+	[SerializeField]
+	[Tooltip( "Current seed of the terrain." )]
+	protected int Seed;
+	[SerializeField]
+	[Tooltip( "Number of octaves used to random heights computation." )]// TODO
+	[Range( 0, 64 )]
+	protected int Octaves = 5;
+	[SerializeField]
+	[Tooltip( "Persistance used to random heights computation." )]// TODO
+	[Range( 0, 1 )]
+	protected float Persistance = 0.5f;
+	[SerializeField]
+	[Tooltip( "Lacunarity used to random heights computation." )]// TODO
+	protected float Lacunarity = 2f;
 
 	[Header( "Additional render settings" )]
-	[SerializeField] protected LC_Terrain_RenderType RenderType;
-	[SerializeField] protected Vector2Int TextureColumnsAndRows = Vector2Int.one;
-	[SerializeField] [Range( 1, 4 )] protected float TextureMarginRelation = 3;
-	[SerializeField] protected Color[] HeightMaterialColors;
+	[SerializeField]
+	[Tooltip( "Render type used at terrain mesh." )]
+	protected LC_Terrain_RenderType RenderType;
+	[SerializeField]
+	[Tooltip( "Only if RenderType is DEFAULT_UVs.\nNumber of columns and rows of the material texture atlas." )]
+	protected Vector2Int TextureColumnsAndRows = Vector2Int.one;
+	[SerializeField]
+	[Tooltip( "Only if RenderType is DEFAULT_UVs.\nMargin fraction of every subtexture of the texture atlas to delete in order to avoid strange edges." )]
+	[Min( 1 )]
+	protected float TextureMarginRelation = 8;
+	[SerializeField]
+	[Tooltip( "Only if RenderType is HEIGHT_DISCRETE or HEIGHT_CONTINUOUS.\nGradient of colors used at LC_Shader." )]
+	protected Color[] HeightShaderColors;
 
 	#endregion
 
@@ -33,6 +71,7 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 	protected System.Random RandomGenerator;
 
 	protected int NumTextures;
+	protected Vector2 TextureReservedSize;
 	protected Vector2 TextureSize;
 	protected Vector2 TextureMargin;
 
@@ -45,22 +84,33 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 	protected override void Start()
 	{
 		NumTextures = TextureColumnsAndRows.x * TextureColumnsAndRows.y;
-		TextureSize = new Vector2( 1f / TextureColumnsAndRows.x, 1f / TextureColumnsAndRows.y );
-		TextureMargin = TextureSize / TextureMarginRelation;
+		TextureReservedSize = new Vector2( 1f / TextureColumnsAndRows.x, 1f / TextureColumnsAndRows.y );
+		TextureMargin = TextureReservedSize / TextureMarginRelation;
+		TextureSize = TextureReservedSize - 2 * TextureMargin;
 
 		RandomGenerator = new System.Random();
-		if ( RandomMapSeed )
-			MapSeed = RandomGenerator.Next();
+		if ( UseRandomSeed )
+			Seed = RandomGenerator.Next();
 
-		if ( RenderType == LC_Terrain_RenderType.HEIGHT_CONTINUOUS )
+		SetRenderMaterial();
+
+		base.Start();
+	}
+
+	/// <summary>
+	/// If the material uses LC_Shader, comunicates the information required.
+	/// </summary>
+	protected void SetRenderMaterial()
+	{
+		// If RenderMaterial uses LC_Shader
+		RenderMaterial.SetInt( "LC_RenderType", (int)RenderType );
+		if ( RenderType != LC_Terrain_RenderType.DEFAULT_UVs )
 		{
 			RenderMaterial.SetFloat( "minHeight", transform.position.y );
 			RenderMaterial.SetFloat( "maxHeight", transform.position.y + MaxHeight );
-			RenderMaterial.SetInt( "numColors", HeightMaterialColors.Length );
-			RenderMaterial.SetColorArray( "colors", HeightMaterialColors );
+			RenderMaterial.SetInt( "numColors", HeightShaderColors.Length );
+			RenderMaterial.SetColorArray( "colors", HeightShaderColors );
 		}
-
-		base.Start();
 	}
 
 	#endregion
@@ -72,26 +122,49 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 		return new LC_Chunk<LC_Cell>( chunkPos, ChunkSize );
 	}
 
-	protected override LC_Cell[,] CreateCells( LC_Chunk<LC_Cell> chunk )
+	/// <summary>
+	/// Create the cells of a chunk using a heights map.
+	/// </summary>
+	/// <param name="chunk"></param>
+	protected override void CreateCells( LC_Chunk<LC_Cell> chunk )
 	{
 		chunk.HeightsMap = CreateChunkHeightsMap( chunk.Position );
-		return base.CreateCells( chunk );
+
+		LC_Cell[,] cells = new LC_Cell[ChunkSize + 1, ChunkSize + 1]; // +1 for edges
+
+		for ( int x = 0; x < cells.GetLength( 0 ); x++ )
+			for ( int z = 0; z < cells.GetLength( 1 ); z++ )
+				cells[x, z] = CreateCell( x, z, chunk );
+
+		chunk.Cells = cells;
 	}
 
+	/// <summary>
+	/// Compute the heights map using LC_Math.PerlinNoiseMap.
+	/// </summary>
+	/// <param name="chunkPos">Position of the chunk</param>
+	/// <returns></returns>
 	protected virtual float[,] CreateChunkHeightsMap( Vector2Int chunkPos )
 	{
 		return LC_Math.PerlinNoiseMap(
 			new Vector2Int( ChunkSize + 3, ChunkSize + 3 ), // +1 for top-right edges and +2 for normals computation
-			MapSeed,
+			Seed,
 			Octaves, Persistance, Lacunarity,
 			new Vector2( 0, MaxHeight ),
-			HeightsMapDivisor,
+			HeightsDivisor,
 			( chunkPos.x - 1 ) * ChunkSize,   // -1 for normals computation (get neighbour chunk edge heights)
 			( chunkPos.y - 1 ) * ChunkSize,   // -1 for normals computation (get neighbour chunk edge heights)
 			true );
 	}
 
-	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
+	/// <summary>
+	/// Create a cell of a chunk using the coordinates and the chunk.HeightsMap. 
+	/// </summary>
+	/// <param name="chunkX"></param>
+	/// <param name="chunkZ"></param>
+	/// <param name="chunk"></param>
+	/// <returns></returns>
+	public virtual LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
 		return new LC_Cell( new Vector2Int( chunk.CellsOffset.x + chunkX, chunk.CellsOffset.y + chunkZ ),
 			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset for normals computation
@@ -99,13 +172,31 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 
 	#region Mesh
 
-	protected override void CellsToMesh( LC_Chunk<LC_Cell> chunk )
+	/// <summary>
+	/// <para>Compute the mesh incrementally with the mesh data for each cell.</para>
+	/// <para>Next, calculate the normals of each vertex to avoid seams between chunks.</para>
+	/// </summary>
+	/// <param name="chunk"></param>
+	protected override void ComputeMesh( LC_Chunk<LC_Cell> chunk )
 	{
-		base.CellsToMesh( chunk );
-		CalculateNormals( chunk );
+		for ( int x = 0; x < chunk.Cells.GetLength( 0 ); x++ )
+		{
+			for ( int z = 0; z < chunk.Cells.GetLength( 1 ); z++ )
+			{
+				CreateCellMesh( x, z, chunk );
+			}
+		}
+
+		ComputeNormals( chunk );
 	}
 
-	protected override void CreateCellMesh( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
+	/// <summary>
+	/// Create mesh data of a specific cell of a chunk (vertices, triangles and UVs) and add it to the chunk lists.
+	/// </summary>
+	/// <param name="chunkX"></param>
+	/// <param name="chunkZ"></param>
+	/// <param name="chunk"></param>
+	protected virtual void CreateCellMesh( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
 		LC_Cell cell = chunk.Cells[chunkX, chunkZ];
 		Vector3 realPos = TerrainPosToReal( cell );
@@ -132,25 +223,42 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 		chunk.UVs.Add( iniUV );
 	}
 
-	protected virtual void GetUVs( Vector2Int chunkPos, out Vector2 ini, out Vector2 end, LC_Chunk<LC_Cell> chunk )
+	/// <summary>
+	/// Compute the UVs square of a specific cell.
+	/// </summary>
+	/// <param name="posAtChunk">Position of the cell at the chunk.</param>
+	/// <param name="ini">Initial position of the UV square(bottom left)</param>
+	/// <param name="end">Final position of the UV square(top right)</param>
+	/// <param name="chunk"></param>
+	protected virtual void GetUVs( Vector2Int posAtChunk, out Vector2 ini, out Vector2 end, LC_Chunk<LC_Cell> chunk )
 	{
-		Vector2Int texPos = GetTexPos( chunk.Cells[chunkPos.x, chunkPos.y], chunk );
-
-		end = new Vector2( ( texPos.x + 1f ) / TextureColumnsAndRows.x, ( texPos.y + 1f ) / TextureColumnsAndRows.y ) - TextureMargin;
-		ini = end - TextureMargin;
+		Vector2Int texPos = GetTexPos( chunk.Cells[posAtChunk.x, posAtChunk.y], chunk );
+		ini = TextureReservedSize * texPos + TextureMargin;
+		end = ini + TextureSize;
 	}
 
+	/// <summary>
+	/// Compute the texture position using the TextureColumnsAndRows and the cell height.
+	/// </summary>
+	/// <param name="cell"></param>
+	/// <param name="chunk"></param>
+	/// <returns></returns>
 	protected virtual Vector2Int GetTexPos( LC_Cell cell, LC_Chunk<LC_Cell> chunk )
 	{
 		float value = Mathf.InverseLerp( 0, MaxHeight, cell.Height );
 		int texInd = Mathf.RoundToInt( value * ( NumTextures - 1 ) );
-		int x = texInd / TextureColumnsAndRows.y;
-		int y = texInd % TextureColumnsAndRows.y;
+		int x = texInd % TextureColumnsAndRows.x;
+		int y = texInd / TextureColumnsAndRows.x;
 
 		return new Vector2Int( x, y );
 	}
 
-	protected virtual void CalculateNormals( LC_Chunk<LC_Cell> chunk )
+	/// <summary>
+	/// <para>Compute the normals for each vertex of the mesh, checking the edges cells of other chunks.</para>
+	/// <para>This process is needed to avoid illumination differences between contiguous cells of different chunks (seams).</para>
+	/// </summary>
+	/// <param name="chunk"></param>
+	protected virtual void ComputeNormals( LC_Chunk<LC_Cell> chunk )
 	{
 		chunk.Normals = new Vector3[( ChunkSize + 1 ) * ( ChunkSize + 1 )];
 		int i, triangleIdx, x, z;
@@ -210,12 +318,15 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 			}
 		}
 
-		// TODO : top-left and bottom-right
-
 		for ( i = 0; i < chunk.Normals.Length; i++ )
 			chunk.Normals[i].Normalize();
 	}
 
+	/// <summary>
+	/// Compute the normal of a specific triangle of the chunk mesh and update the normals of the corresponding vertices.
+	/// </summary>
+	/// <param name="firstTriangleIdx"></param>
+	/// <param name="chunk"></param>
 	protected virtual void CalculateTrianglesNormals( int firstTriangleIdx, LC_Chunk<LC_Cell> chunk )
 	{
 		int idxA, idxB, idxC;
@@ -236,6 +347,9 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 
 	#endregion
 
+	/// <summary>
+	/// Auxiliar class used to allow AutoUpdate functionality and the Generate and Destroy buttons.
+	/// </summary>
 	[CustomEditor( typeof( LC_Terrain ) )]
 	internal class LevelScriptEditor : Editor
 	{
@@ -247,6 +361,9 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 
 			if ( ( myTarget.AutoUpdate && hasChanged ) || GUILayout.Button( "Generate" ) )
 			{
+				// Update RenderMaterial
+				myTarget.SetRenderMaterial();
+
 				// Disable parallel settings
 				bool parallelChunk = myTarget.ParallelChunkLoading;
 				myTarget.ParallelChunkLoading = false;

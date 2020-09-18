@@ -1,6 +1,18 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Render types for the LC_Map.
+/// </summary>
+public enum LC_Map_RenderType : int
+{
+	HEIGHT_DISCRETE = 1,
+	HEIGHT_CONTINUOUS = 2
+};
+
+/// <summary>
+/// Default map class of Lost Cartographer Pack.
+/// </summary>
 [RequireComponent( typeof( RawImage ) )]
 public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 {
@@ -9,8 +21,12 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 	#region Settings
 
 	[Header( "Additional render settings" )]
-	[SerializeField] protected LC_Terrain_RenderType RenderType;
-	[SerializeField] protected Color[] Colors;
+	[SerializeField]
+	[Tooltip( "Render type used at terrain mesh." )]
+	protected LC_Map_RenderType RenderType;
+	[SerializeField]
+	[Tooltip( "Gradient of colors used for map render." )]
+	protected Color[] Colors;
 
 	#endregion
 
@@ -24,6 +40,21 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 
 	#region Texture computation
 
+	/// <summary>
+	/// Get as reference position the player terrain position.
+	/// </summary>
+	/// <returns></returns>
+	protected override Vector2Int GetReferencePos()
+	{
+		Vector3Int pos = TerrainToMap.GetPlayerTerrainPos();
+		return new Vector2Int( pos.x, pos.z );
+	}
+
+	/// <summary>
+	/// Computes the color for a cell using the cell height and the Colors array.
+	/// </summary>
+	/// <param name="cell"></param>
+	/// <returns></returns>
 	protected override Color32 GetColorPerCell( LC_Cell cell )
 	{
 		Color32 color;
@@ -39,12 +70,12 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 
 			switch ( RenderType )
 			{
-				case LC_Terrain_RenderType.HEIGHT_CONTINUOUS:
+				case LC_Map_RenderType.HEIGHT_CONTINUOUS:
 					int colorIndex = (int)colorFloatIndex;
 					float indexDecimals = colorFloatIndex - colorIndex;
 					color = ( 1 - indexDecimals ) * Colors[colorIndex] + indexDecimals * Colors[colorIndex + 1];
 					break;
-				case LC_Terrain_RenderType.HEIGHT_DISCRETE:
+				case LC_Map_RenderType.HEIGHT_DISCRETE:
 					color = Colors[Mathf.RoundToInt( colorFloatIndex )];
 					break;
 				default:
@@ -55,12 +86,6 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 
 		return color;
 	}
-
-	protected override Vector2Int GetReferencePos()
-	{
-		Vector3Int pos = TerrainToMap.GetPlayerTerrainPos();
-		return new Vector2Int( pos.x, pos.z );
-	}
-
+	
 	#endregion
 }

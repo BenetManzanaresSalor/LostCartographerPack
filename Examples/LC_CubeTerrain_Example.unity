@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &596646709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,25 +152,28 @@ MonoBehaviour:
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 1, z: 2}
   ChunkSizeLevel: 4
-  ChunkRenderDistance: 15
+  ChunkRenderDistance: 10
   HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
   MaxUpdateTime: 0.008333334
   AutoUpdate: 0
-  HeightsMapDivisor: 50
+  HeightsDivisor: 75
   MaxHeight: 25
-  RandomMapSeed: 0
-  MapSeed: 55
+  UseRandomSeed: 0
+  Seed: 2023035122
   Octaves: 5
   Persistance: 0.5
   Lacunarity: 2
   RenderType: 0
   TextureColumnsAndRows: {x: 1, y: 3}
-  TextureMarginRelation: 3
-  HeightMaterialColors: []
-  UseSplitAndMerge: 1
+  TextureMarginRelation: 8
+  HeightShaderColors:
+  - {r: 0.9215687, g: 0.89019614, b: 0.8078432, a: 1}
+  - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
+  - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
+  UseSplitAndMerge: 0
 --- !u!4 &596646710
 Transform:
   m_ObjectHideFlags: 0
@@ -183,7 +186,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &812618136 stripped
 Transform:
@@ -241,16 +244,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa14eef9cb8f7f2439fb9a35ef39a123, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TerrainToMap: {fileID: 1052120542}
   TargetTexture: {fileID: 8400000, guid: 13cbf437ffd43e249975439a48aaaa05, type: 2}
   NumCellsWidthAndHeight: {x: 400, y: 400}
   ResolutionDivider: {x: 4, y: 4}
   TextureWidthAndHeight: {x: 200, y: 200}
-  FramesBtwUpdates: 1
+  FramesBtwUpdates: 2
   MaxUpdateTime: 0.008333334
   MapNonLoadedChunks: 1
   UseMipMaps: 0
-  RenderType: 0
+  RenderType: 1
   Colors:
   - {r: 0.9137255, g: 0.83137256, b: 0.6156863, a: 1}
   - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
@@ -288,73 +290,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861188628}
   m_CullTransparentMesh: 0
---- !u!1 &1052120541
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1052120543}
-  - component: {fileID: 1052120542}
-  m_Layer: 0
-  m_Name: LC_Terrain
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1052120542
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1052120541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b471b7503c188b408ce97deeb38bae4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Player: {fileID: 812618136}
-  CellSize: {x: 2, y: 2, z: 2}
-  ChunkSizeLevel: 5
-  ChunkRenderDistance: 10
-  HasCollider: 0
-  DynamicChunkLoading: 1
-  ParallelChunkLoading: 1
-  RenderMaterial: {fileID: 2100000, guid: af7088dc06a820749bbdfdcf052aeb5d, type: 2}
-  MaxUpdateTime: 0.004166667
-  AutoUpdate: 0
-  HeightsMapDivisor: 50
-  MaxHeight: 25
-  RandomMapSeed: 0
-  MapSeed: 3
-  Octaves: 4
-  Persistance: 0.3
-  Lacunarity: 2.5
-  RenderType: 1
-  TextureColumnsAndRows: {x: 1, y: 3}
-  TextureMarginRelation: 3
-  HeightMaterialColors:
-  - {r: 0.9150943, g: 0.8329323, b: 0.617257, a: 1}
-  - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
-  - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
---- !u!4 &1052120543
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1052120541}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1742144793
 GameObject:
   m_ObjectHideFlags: 0
@@ -447,7 +382,7 @@ RectTransform:
   m_Children:
   - {fileID: 861188629}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -609,7 +544,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &3543242141843334200
 PrefabInstance:

@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Generic class parent of any Map of Lost Cartographer Pack.
+/// </summary>
 public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where Terrain : LC_GenericTerrain<Chunk, Cell> where Chunk : LC_Chunk<Cell> where Cell : LC_Cell
 {
 	#region Attributes
@@ -7,20 +10,39 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 	#region Settings
 
 	[Header( "General settings" )]
-	[SerializeField] protected Terrain TerrainToMap;
-	[SerializeField] protected RenderTexture TargetTexture;
-	[SerializeField] protected Vector2Int NumCellsWidthAndHeight = new Vector2Int( 20, 20 );
-	[SerializeField] protected Vector2Int ResolutionDivider = new Vector2Int( 1, 1 );
-	[SerializeField] protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
-	[SerializeField] protected int FramesBtwUpdates = 1;
-	[SerializeField] protected float MaxUpdateTime = 1f / ( 60f * 2f );
-	[SerializeField] protected bool MapNonLoadedChunks;
-	[SerializeField] protected bool UseMipMaps = false;
+	[SerializeField]
+	[Tooltip("Object texture of the map computation.")]
+	protected RenderTexture TargetTexture;
+	[SerializeField]
+	[Tooltip("Size of the map represented as number of cells.")]
+	protected Vector2Int NumCellsWidthAndHeight = new Vector2Int( 20, 20 );
+	[SerializeField]
+	[Tooltip( "Defines de detail of the map.\nA value of 4 means that the map represents 1 cell of each 4." )]
+	protected Vector2Int ResolutionDivider = new Vector2Int( 1, 1 );
+	[SerializeField]
+	[Tooltip( "Size of the texture to use at TargetTexture." )]
+	protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
+	[SerializeField]
+	[Tooltip( "Number of frames between a update of the map.\nA value of 3 means that the map is updated 1 frame of teach 3." )]
+	protected int FramesBtwUpdates = 1;
+	[SerializeField]
+	[Tooltip( "Maximum seconds for every Update call.\n" +
+		"This value is checked between every map cell update, avoiding further updates during that frame if the maximum time is exceeded.\n" +
+		"Lower values means better framerate but slower map loading." )]
+	protected float MaxUpdateTime = 1f / ( 60f * 2f );
+	[SerializeField]
+	[Tooltip("If true, forces the chunk loading needed to render all the cells of the map.\n" +
+		"That is, the terrain will load chunks only for map (without Mesh or GameObject) if they are not loaded or loading.")]
+	protected bool MapNonLoadedChunks;
+	[SerializeField]
+	[Tooltip( "Use MipMaps at the created texture." )]
+	protected bool UseMipMaps = false;
 
 	#endregion
 
 	#region Function attributes
 
+	protected Terrain TerrainToMap;
 	protected Vector2Int ReferencePos;
 	protected Texture2D MapTexture;
 	protected Color32[] TextureColors;
@@ -34,8 +56,12 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	#region Initialization
 
+	/// <summary>
+	/// Initializes the map variables and the texture.
+	/// </summary>
 	protected virtual void Start()
 	{
+		TerrainToMap = FindObjectOfType<Terrain>();
 		MapTexture = new Texture2D( TextureWidthAndHeight.x, TextureWidthAndHeight.y );
 		TextureColors = new Color32[MapTexture.width * MapTexture.height];
 		CurrentCellPosInTex = Vector2Int.zero;
@@ -45,6 +71,9 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	#region Texture computation
 
+	/// <summary>
+	/// Updates the map and the terrain if is required.
+	/// </summary>
 	protected virtual void Update()
 	{
 		if ( Time.frameCount % FramesBtwUpdates == 0 )
@@ -61,13 +90,25 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 		}
 	}
 
+	/// <summary>
+	/// Abstract method that gets the reference/central terrain position of the map. Can be the player position.
+	/// </summary>
+	/// <returns></returns>
 	protected abstract Vector2Int GetReferencePos();
 
+	/// <summary>
+	/// Checks if the time since the start of the Update method is greater than the MaxUpdateTime.
+	/// </summary>
+	/// <returns></returns>
 	protected virtual bool InMaxUpdateTime()
 	{
 		return ( Time.realtimeSinceStartup - UpdateIniTime ) <= MaxUpdateTime;
 	}
 
+	/// <summary>
+	/// <para>Compute the pixels of the map using the terrain cells, continuing from the last cell pixels updated.</para>
+	/// <para>For each cell pixels to update it uses the InMaxUpdateTime method, breaking the loop if the MaxUpdateTime is exceeded.</para>
+	/// </summary>
 	protected virtual void ComputePixels()
 	{
 		Vector2Int bottomLeftCorner = ReferencePos - HalfMapOffset;
@@ -111,8 +152,16 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 		Graphics.Blit( MapTexture, TargetTexture );
 	}
 
+	/// <summary>
+	/// Abstract method that obtains the color that represents a specific cell.
+	/// </summary>
+	/// <param name="cell">Cell to render.</param>
+	/// <returns></returns>
 	protected abstract Color32 GetColorPerCell( Cell cell );
 
+	/// <summary>
+	/// Updates the terrain chunks for the map.
+	/// </summary>
 	protected virtual void UpdateTerrainToMapChunks()
 	{
 		Vector2Int bottomLeftCorner = ReferencePos - HalfMapOffset;

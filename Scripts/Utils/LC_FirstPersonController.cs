@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Auxiliar class for the Lost Cartographer Pack examples.
+/// </summary>
 [RequireComponent( typeof( CharacterController ) )]
 public class LC_FirstPersonController : MonoBehaviour
 {
