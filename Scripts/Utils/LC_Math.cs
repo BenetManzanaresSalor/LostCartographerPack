@@ -482,27 +482,6 @@ public static class LC_Math
 
 	#region Extended methods
 
-	/// <summary>
-	/// Obtains the euclidean distance from current vector to other position.
-	/// </summary>
-	/// <param name="a">Current position.</param>
-	/// <param name="b">Other position.</param>
-	/// <returns>The euclidean distance between positions.</returns>
-	public static float Distance( this Vector2Int a, Vector2Int b )
-	{
-		return ( b - a ).magnitude;
-	}
-
-	/// <summary>
-	/// Transforms current vector to a discrete direction ( values in range [-1,1] ).
-	/// </summary>
-	/// <param name="vector">Vector transformed to direction.</param>
-	public static void TransformToDirection( this Vector2Int vector )
-	{
-		vector.x = Clamp( vector.x, -1, 1 );
-		vector.y = Clamp( vector.y, -1, 1 );
-	}
-
 	public static Vector2Int Div( this Vector2Int a, Vector2Int b )
 	{
 		return new Vector2Int( a.x / b.x, a.y / b.y );
