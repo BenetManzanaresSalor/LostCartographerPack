@@ -21,7 +21,7 @@ public abstract class LC_CubeTerrain<Chunk, Cell> : LC_Terrain<Chunk, Cell> wher
 
 	#region Initialization
 
-	public abstract override Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
+	protected abstract override Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
 
 	#endregion
 

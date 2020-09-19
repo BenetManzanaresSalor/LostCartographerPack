@@ -161,7 +161,7 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 	/// <param name="chunkZ"></param>
 	/// <param name="chunk"></param>
 	/// <returns></returns>
-	public abstract Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
+	protected abstract Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
 
 	#region Mesh
 
