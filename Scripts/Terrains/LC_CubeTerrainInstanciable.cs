@@ -9,7 +9,7 @@ public class LC_CubeTerrainInstanciable : LC_CubeTerrain<LC_Chunk<LC_Cell>, LC_C
 		return new LC_Chunk<LC_Cell>( chunkPos, ChunkSize );
 	}
 
-	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
+	protected override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
 		LC_Cell cell = new LC_Cell( new Vector2Int( chunk.CellsOffset.x + chunkX, chunk.CellsOffset.y + chunkZ ),
 			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset for normals computation

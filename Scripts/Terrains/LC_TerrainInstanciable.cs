@@ -13,7 +13,7 @@ public class LC_TerrainInstanciable : LC_Terrain<LC_Chunk<LC_Cell>,LC_Cell>
 	/// <summary>
 	/// Create a cell of a chunk using the coordinates and the chunk.HeightsMap. 
 	/// </summary>
-	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
+	protected override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
 	{
 		return new LC_Cell( new Vector2Int( chunk.CellsOffset.x + chunkX, chunk.CellsOffset.y + chunkZ ),
 			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset for normals computation
