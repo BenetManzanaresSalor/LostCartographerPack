@@ -11,29 +11,29 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	[Header( "General settings" )]
 	[SerializeField]
-	[Tooltip("Object texture of the map computation.")]
+	[Tooltip( "Object texture of the map computation." )]
 	protected RenderTexture TargetTexture;
 	[SerializeField]
-	[Tooltip("Size of the map represented as number of cells.")]
-	protected Vector2Int NumCellsWidthAndHeight = new Vector2Int( 20, 20 );
+	[Tooltip( "Size of the map represented as number of cells." )]
+	protected Vector2Int NumCellsWidthAndHeight = new Vector2Int( 512, 512 );
 	[SerializeField]
 	[Tooltip( "Defines de detail of the map.\nA value of 4 means that the map represents 1 cell of each 4." )]
-	protected Vector2Int ResolutionDivider = new Vector2Int( 1, 1 );
+	protected Vector2Int ResolutionDivider = new Vector2Int( 4, 4 );
 	[SerializeField]
 	[Tooltip( "Size of the texture to use at TargetTexture." )]
-	protected Vector2Int TextureWidthAndHeight = new Vector2Int( 200, 200 );
+	protected Vector2Int TextureWidthAndHeight = new Vector2Int( 256, 256 );
 	[SerializeField]
 	[Tooltip( "Number of frames between a update of the map.\nA value of 3 means that the map is updated 1 frame of teach 3." )]
-	protected int FramesBtwUpdates = 1;
+	protected int FramesBtwUpdates = 2;
 	[SerializeField]
 	[Tooltip( "Maximum seconds for every Update call.\n" +
 		"This value is checked between every map cell update, avoiding further updates during that frame if the maximum time is exceeded.\n" +
 		"Lower values means better framerate but slower map loading." )]
 	protected float MaxUpdateTime = 1f / ( 60f * 2f );
 	[SerializeField]
-	[Tooltip("If true, forces the chunk loading needed to render all the cells of the map.\n" +
-		"That is, the terrain will load chunks only for map (without Mesh or GameObject) if they are not loaded or loading.")]
-	protected bool MapNonLoadedChunks;
+	[Tooltip( "If true, forces the chunk loading needed to render all the cells of the map.\n" +
+		"That is, the terrain will load chunks only for map (without Mesh or GameObject) if they are not loaded or loading." )]
+	protected bool MapNonLoadedChunks = true;
 	[SerializeField]
 	[Tooltip( "Use MipMaps at the created texture." )]
 	protected bool UseMipMaps = false;

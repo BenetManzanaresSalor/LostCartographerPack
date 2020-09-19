@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Modification of the LC_Terrain class that applies a cube shape to each cell.
 /// </summary>
-public class LC_CubeTerrain : LC_Terrain
+public abstract class LC_CubeTerrain<Chunk, Cell> : LC_Terrain<Chunk, Cell> where Chunk : LC_Chunk<Cell> where Cell : LC_Cell
 {
 	#region Attributes
 
@@ -21,12 +21,7 @@ public class LC_CubeTerrain : LC_Terrain
 
 	#region Initialization
 
-	public override LC_Cell CreateCell( int chunkX, int chunkZ, LC_Chunk<LC_Cell> chunk )
-	{
-		LC_Cell cell = base.CreateCell( chunkX, chunkZ, chunk );
-		cell.Height = Mathf.RoundToInt( cell.Height );
-		return cell;
-	}
+	public abstract override Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
 
 	#endregion
 
@@ -36,7 +31,7 @@ public class LC_CubeTerrain : LC_Terrain
 	/// Compute the mesh using Split and Merge algorithm if is specified.
 	/// </summary>
 	/// <param name="chunk"></param>
-	protected override void ComputeMesh( LC_Chunk<LC_Cell> chunk )
+	protected override void ComputeMesh( Chunk chunk )
 	{
 		if ( UseSplitAndMerge )
 		{
@@ -59,7 +54,7 @@ public class LC_CubeTerrain : LC_Terrain
 	/// Applies the Split and Merge algorithm and create the mesh for the result sectors.
 	/// </summary>
 	/// <param name="chunk"></param>
-	protected virtual void SplitAndMergeMesh( LC_Chunk<LC_Cell> chunk )
+	protected virtual void SplitAndMergeMesh( Chunk chunk )
 	{
 		List<LC_Math.QuadTreeSector> sectors = LC_Math.SplitAndMerge(
 			( x, z ) => { return chunk.Cells[x, z].Height; },
@@ -78,7 +73,7 @@ public class LC_CubeTerrain : LC_Terrain
 	/// <param name="iniCellPos"></param>
 	/// <param name="endCellPos"></param>
 	/// <param name="chunk"></param>
-	protected virtual void CreateElementMesh( Vector2Int iniCellPos, Vector2Int endCellPos, LC_Chunk<LC_Cell> chunk )
+	protected virtual void CreateElementMesh( Vector2Int iniCellPos, Vector2Int endCellPos, Chunk chunk )
 	{
 		Vector3 realCellPos = ( TerrainPosToReal( chunk.Cells[iniCellPos.x, iniCellPos.y] ) +
 			TerrainPosToReal( chunk.Cells[endCellPos.x, endCellPos.y] ) ) / 2f;
@@ -138,7 +133,7 @@ public class LC_CubeTerrain : LC_Terrain
 	/// <param name="iniUV"></param>
 	/// <param name="endUV"></param>
 	/// <param name="chunk"></param>
-	protected virtual void CreateEdgeMesh( Vector3 cellRealPos, LC_Cell edgeCell, bool toRight, Vector2 iniUV, Vector2 endUV, LC_Chunk<LC_Cell> chunk )
+	protected virtual void CreateEdgeMesh( Vector3 cellRealPos, Cell edgeCell, bool toRight, Vector2 iniUV, Vector2 endUV, Chunk chunk )
 	{
 		Vector2 edgeIniUV;
 		Vector2 edgeEndUV;

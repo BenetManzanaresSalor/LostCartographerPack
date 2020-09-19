@@ -10,12 +10,6 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 {
 	#region Attributes
 
-	#region Constants
-
-	public const int MaxVerticesByMesh = 65536;
-
-	#endregion
-
 	#region Settings	
 
 	[Header( "Global settings" )]
@@ -34,7 +28,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	[SerializeField]
 	[Tooltip( "Distance from the player to a chunk required to load it, defined as number of chunks.\nAlong with ChunkSizeLevel, defines the final render distance." )]
 	[Range( 0, 64 )]
-	protected int ChunkRenderDistance = 4;
+	protected int ChunkRenderDistance = 8;
 	[SerializeField]
 	[Tooltip( "If the chunks have MeshCollider.\nIt can affect significantly to the performance." )]
 	protected bool HasCollider = true;

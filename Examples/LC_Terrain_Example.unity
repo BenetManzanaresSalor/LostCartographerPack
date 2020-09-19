@@ -136,10 +136,10 @@ GameObject:
   m_Component:
   - component: {fileID: 861188629}
   - component: {fileID: 861188632}
-  - component: {fileID: 861188630}
   - component: {fileID: 861188631}
+  - component: {fileID: 861188630}
   m_Layer: 5
-  m_Name: LC_Map
+  m_Name: Map
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -173,22 +173,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 861188628}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa14eef9cb8f7f2439fb9a35ef39a123, type: 3}
+  m_Script: {fileID: 11500000, guid: 7339f535b7f9e1a498e9730e39f6febf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   TargetTexture: {fileID: 8400000, guid: 13cbf437ffd43e249975439a48aaaa05, type: 2}
-  NumCellsWidthAndHeight: {x: 400, y: 400}
+  NumCellsWidthAndHeight: {x: 512, y: 512}
   ResolutionDivider: {x: 4, y: 4}
-  TextureWidthAndHeight: {x: 200, y: 200}
+  TextureWidthAndHeight: {x: 256, y: 256}
   FramesBtwUpdates: 2
   MaxUpdateTime: 0.008333334
   MapNonLoadedChunks: 1
-  UseMipMaps: 0
+  UseMipMaps: 1
   RenderType: 1
   Colors:
-  - {r: 0.9137255, g: 0.83137256, b: 0.6156863, a: 1}
-  - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
-  - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
+  - {r: 0.9176471, g: 0.8862746, b: 0.80392164, a: 1}
+  - {r: 0.5568628, g: 0.5803922, b: 0.2901961, a: 1}
+  - {r: 0.3019608, g: 0.34901962, b: 0.16470589, a: 1}
 --- !u!114 &861188631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,7 +233,7 @@ GameObject:
   - component: {fileID: 1052120543}
   - component: {fileID: 1052120542}
   m_Layer: 0
-  m_Name: LC_Terrain
+  m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -248,33 +248,33 @@ MonoBehaviour:
   m_GameObject: {fileID: 1052120541}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b471b7503c188b408ce97deeb38bae4, type: 3}
+  m_Script: {fileID: 11500000, guid: 4bc0f18e6746cee4d93f732b40e18abe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 1, z: 2}
   ChunkSizeLevel: 4
-  ChunkRenderDistance: 5
-  HasCollider: 0
+  ChunkRenderDistance: 8
+  HasCollider: 1
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
   MaxUpdateTime: 0.008333334
   AutoUpdate: 0
-  HeightsDivisor: 70
+  HeightsDivisor: 75
   MaxHeight: 50
-  UseRandomSeed: 0
+  UseRandomSeed: 1
   Seed: 0
   Octaves: 4
   Persistance: 0.25
   Lacunarity: 2.5
-  RenderType: 2
+  RenderType: 0
   TextureColumnsAndRows: {x: 1, y: 3}
-  TextureMarginRelation: 3
+  TextureMarginRelation: 8
   HeightShaderColors:
-  - {r: 0.9215687, g: 0.89019614, b: 0.8078432, a: 1}
-  - {r: 0.56078434, g: 0.58431375, b: 0.2901961, a: 1}
-  - {r: 0.3019608, g: 0.34901962, b: 0.16078432, a: 1}
+  - {r: 0.9176471, g: 0.8862746, b: 0.80392164, a: 1}
+  - {r: 0.5568628, g: 0.5803922, b: 0.2901961, a: 1}
+  - {r: 0.3019608, g: 0.34901962, b: 0.16470589, a: 1}
 --- !u!4 &1052120543
 Transform:
   m_ObjectHideFlags: 0
@@ -287,7 +287,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1742144793
 GameObject:
@@ -381,7 +381,7 @@ RectTransform:
   m_Children:
   - {fileID: 861188629}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -477,7 +477,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1 &1965389994
 GameObject:
@@ -543,7 +543,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &3543242141843334200
 PrefabInstance:
@@ -595,7 +595,7 @@ PrefabInstance:
     - target: {fileID: 3543242142647039392, guid: b77220f7053d8f64c843de6f3ba6e25c,
         type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3543242142647039392, guid: b77220f7053d8f64c843de6f3ba6e25c,
         type: 3}

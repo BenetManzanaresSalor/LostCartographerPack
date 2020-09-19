@@ -14,7 +14,7 @@ public enum LC_Map_RenderType : int
 /// Default map class of Lost Cartographer Pack.
 /// </summary>
 [RequireComponent( typeof( RawImage ) )]
-public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
+public class LC_Map<Terrain, Chunk, Cell> : LC_GenericMap<Terrain, Chunk, Cell> where Terrain : LC_Terrain<Chunk,Cell> where Chunk : LC_Chunk<Cell> where Cell : LC_Cell
 {
 	#region Attributes	
 
@@ -55,7 +55,7 @@ public class LC_Map : LC_GenericMap<LC_Terrain, LC_Chunk<LC_Cell>, LC_Cell>
 	/// </summary>
 	/// <param name="cell"></param>
 	/// <returns></returns>
-	protected override Color32 GetColorPerCell( LC_Cell cell )
+	protected override Color32 GetColorPerCell( Cell cell )
 	{
 		Color32 color;
 
