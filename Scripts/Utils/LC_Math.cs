@@ -14,9 +14,9 @@ public static class LC_Math
 	/// </summary>
 	/// <param name="size">Size of the result matrix.</param>
 	/// <param name="seed">Seed of the result. Preferaby not integer.</param>
-	/// <param name="octaves"></param>	// TODO
-	/// <param name="persistance"></param> 	// TODO
-	/// <param name="lacunarity"></param> 	// TODO
+	/// <param name="octaves">Determine the number of details of the noise map. Each new octave adds smaller details and can affect performance.</param>
+	/// <param name="persistance">Determine the effect of details at the noise map. Big values makes the terrain heights very random.</param>
+	/// <param name="lacunarity">Determine the randomness of the details.</param>
 	/// <param name="minAndMaxValues">Minimum (x) and maximum (y) output values. Infinity not allowed.</param>
 	/// <param name="xOffset">Rows offset for the random generation.</param>
 	/// <param name="yOffset">Columns offset for the random generation..</param>

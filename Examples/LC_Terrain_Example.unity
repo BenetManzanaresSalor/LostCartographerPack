@@ -254,7 +254,7 @@ MonoBehaviour:
   Player: {fileID: 812618136}
   CellSize: {x: 2, y: 1, z: 2}
   ChunkSizeLevel: 4
-  ChunkRenderDistance: 10
+  ChunkRenderDistance: 5
   HasCollider: 0
   DynamicChunkLoading: 1
   ParallelChunkLoading: 1
@@ -267,7 +267,7 @@ MonoBehaviour:
   Seed: 0
   Octaves: 4
   Persistance: 0.25
-  Lacunarity: 2.3
+  Lacunarity: 2.5
   RenderType: 2
   TextureColumnsAndRows: {x: 1, y: 3}
   TextureMarginRelation: 3

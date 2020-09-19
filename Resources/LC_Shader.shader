@@ -37,7 +37,7 @@
 		float minHeight;
 		float maxHeight;
 		int numColors;
-		float3 colors[maxColorCount];
+		float3 colors[maxColorCount];		
 
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -65,7 +65,6 @@
 			}
 			// Height discrete or continuous
 			else {
-				// TODO : Use terrain position
 				float percentage = inverseLerp(minHeight, maxHeight, IN.worldPos.y);
 				float colorFloatIndex = percentage * (numColors - 1);
 

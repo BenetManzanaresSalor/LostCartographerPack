@@ -38,15 +38,15 @@ public class LC_Terrain : LC_GenericTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 	[Tooltip( "Current seed of the terrain." )]
 	protected int Seed;
 	[SerializeField]
-	[Tooltip( "Number of octaves used to random heights computation." )]// TODO
-	[Range( 0, 64 )]
+	[Tooltip( "Determine the number of details of the terrain.\nEach new octave adds smaller details and can affect performance." )]
+	[Range( 1, 64 )]
 	protected int Octaves = 5;
 	[SerializeField]
-	[Tooltip( "Persistance used to random heights computation." )]// TODO
+	[Tooltip( "Determine the effect of details at the terrain.\nBig values makes the terrain heights very random." )]
 	[Range( 0, 1 )]
 	protected float Persistance = 0.5f;
 	[SerializeField]
-	[Tooltip( "Lacunarity used to random heights computation." )]// TODO
+	[Tooltip( "Determine the randomness of the details." )]
 	protected float Lacunarity = 2f;
 
 	[Header( "Additional render settings" )]
