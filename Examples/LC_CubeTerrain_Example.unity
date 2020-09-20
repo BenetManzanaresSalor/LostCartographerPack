@@ -158,7 +158,6 @@ MonoBehaviour:
   ParallelChunkLoading: 1
   RenderMaterial: {fileID: 2100000, guid: 3d0ecbbb22b864646875e34c59e6541b, type: 2}
   MaxUpdateTime: 0.008333334
-  AutoUpdate: 0
   HeightsDivisor: 75
   MaxHeight: 50
   UseRandomSeed: 1
@@ -556,7 +555,7 @@ PrefabInstance:
     - target: {fileID: 3543242142647039405, guid: b77220f7053d8f64c843de6f3ba6e25c,
         type: 3}
       propertyPath: m_Name
-      value: First Person Player
+      value: LC_FirstPersonPlayer
       objectReference: {fileID: 0}
     - target: {fileID: 3543242142647039392, guid: b77220f7053d8f64c843de6f3ba6e25c,
         type: 3}

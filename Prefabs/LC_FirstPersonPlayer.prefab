@@ -55,15 +55,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3543242142647039405}
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: -41.51615, y: 59.618324, z: 71.9081}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 50, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3543242143765965902}
   - {fileID: 3543242142416358627}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 50.000004, y: -30.000002, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &3543242142647039407
 CharacterController:
   m_ObjectHideFlags: 0
@@ -95,16 +95,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MouseSensitivity: 100
-  XandZvelocity: 75
+  XandZvelocity: 15
   JumpHeight: 3
   Gravity: -9.807
   GroundCheck: {fileID: 3543242142416358627}
   GroundCheckRadius: 1
   WhatIsGround:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   FreeVerticalMovement: 1
-  Yvelocity: 100
+  Yvelocity: 15
 --- !u!1 &3543242143765965901
 GameObject:
   m_ObjectHideFlags: 0
