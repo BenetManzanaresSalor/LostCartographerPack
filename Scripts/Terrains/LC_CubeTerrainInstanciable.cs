@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class LC_CubeTerrainInstanciable : LC_CubeTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 {
+	public void Start()
+	{
+		Generate();
+	}
+
 	protected override LC_Chunk<LC_Cell> CreateChunkInstance( Vector2Int chunkPos )
 	{
 		return new LC_Chunk<LC_Cell>( chunkPos, ChunkSize );

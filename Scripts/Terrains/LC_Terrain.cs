@@ -81,7 +81,7 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 
 	#region Initialization
 
-	protected override void Start()
+	public override void Generate()
 	{
 		NumTextures = TextureColumnsAndRows.x * TextureColumnsAndRows.y;
 		TextureReservedSize = new Vector2( 1f / TextureColumnsAndRows.x, 1f / TextureColumnsAndRows.y );
@@ -94,7 +94,7 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 
 		SetRenderMaterial();
 
-		base.Start();
+		base.Generate();
 	}
 
 	/// <summary>

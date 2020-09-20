@@ -52,6 +52,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	#region Function attributes
 
+	protected bool IsGenerated = false;
 	protected int ChunkSize;
 	protected Vector3 CurrentRealPos;    // Equivalent to transform.position. Required for parallel chunk mesh loading.
 	protected Vector2Int PlayerChunkPos;
@@ -76,7 +77,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// <summary>
 	/// Initialize the variables, destroy the previous terrain (if exists) and generates a new terrain.
 	/// </summary>
-	protected virtual void Start()
+	public virtual void Generate()
 	{
 		ChunkSize = (int)Mathf.Pow( 2, ChunkSizeLevel );
 		CurrentRealPos = transform.position;
@@ -101,6 +102,8 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// <param name="immediate">If destroys immediate the GameObjects.</param>
 	public virtual void DestroyTerrain( bool immediate )
 	{
+		IsGenerated = false;
+
 		Transform[] allChildren = GetComponentsInChildren<Transform>();
 		if ( allChildren.Length > 0 )
 			foreach ( Transform child in allChildren )
@@ -157,7 +160,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 			}
 		}
 	}
-	
+
 	/// <summary>
 	/// <para>Generates a new terrain around the player with square shape.</para>
 	/// <para>If DynamicChunkLoading is enabled the square shape is substituted using the ChunkRenderDistance.</para>
@@ -165,6 +168,8 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// </summary>
 	protected virtual void IniTerrain()
 	{
+		IsGenerated = true;
+
 		// Always load the current player chunk
 		LoadChunk( PlayerChunkPos, true );
 
@@ -172,7 +177,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		foreach ( Vector2Int chunkPos in LC_Math.AroundPositions( PlayerChunkPos, ChunkRenderDistance ) )
 			LoadChunk( chunkPos );
 	}
-	
+
 	#endregion
 
 	#region Chunk creation
@@ -334,25 +339,28 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// </summary>
 	protected virtual void Update()
 	{
-		UpdateIniTime = Time.realtimeSinceStartup;
-
-		// Update useful variables
-		CurrentRealPos = transform.position;    // Required for parallel functions and others
-		PlayerChunkPos = RealPosToChunk( Player.position ); // Required for DynamicChunkLoading
-		ChunkRenderRealDistance = ChunkRenderDistance * ChunkSize * Mathf.Max( CellSize.x, CellSize.z );    // Required for DynamicChunkLoading
-
-		// Check chunk loaded parallelly (if remains time)
-		if ( ParallelChunkLoading && InMaxUpdateTime() )
-			BuildParallelyLoadedChunks();
-
-		if ( DynamicChunkLoading )
+		if ( IsGenerated )
 		{
-			// Load the current player chunk if isn't loaded
-			CheckPlayerCurrentChunk();
+			UpdateIniTime = Time.realtimeSinceStartup;
 
-			// Update chunks required (if remains time)
-			if ( InMaxUpdateTime() )
-				DynamicChunksUpdate();
+			// Update useful variables
+			CurrentRealPos = transform.position;    // Required for parallel functions and others
+			PlayerChunkPos = RealPosToChunk( Player.position ); // Required for DynamicChunkLoading
+			ChunkRenderRealDistance = ChunkRenderDistance * ChunkSize * Mathf.Max( CellSize.x, CellSize.z );    // Required for DynamicChunkLoading
+
+			// Check chunk loaded parallelly (if remains time)
+			if ( ParallelChunkLoading && InMaxUpdateTime() )
+				BuildParallelyLoadedChunks();
+
+			if ( DynamicChunkLoading )
+			{
+				// Load the current player chunk if isn't loaded
+				CheckPlayerCurrentChunk();
+
+				// Update chunks required (if remains time)
+				if ( InMaxUpdateTime() )
+					DynamicChunksUpdate();
+			}
 		}
 	}
 
@@ -599,7 +607,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 		return isrequired;
 	}
-		
+
 	public virtual Vector3 TerrainPosToReal( int x, float height, int z )
 	{
 		return CurrentRealPos + new Vector3( x * CellSize.x, height * CellSize.y, z * CellSize.z ) - HalfChunk;
@@ -705,6 +713,6 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	{
 		return GetCell( RealPosToTerrain( realPos ), isForMap );
 	}
-	
+
 	#endregion
 }

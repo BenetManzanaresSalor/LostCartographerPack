@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class LC_TerrainInstanciable : LC_Terrain<LC_Chunk<LC_Cell>,LC_Cell>
 {
+	public void Start()
+	{
+		Generate();
+	}
+
 	protected override LC_Chunk<LC_Cell> CreateChunkInstance( Vector2Int chunkPos )
 	{
 		return new LC_Chunk<LC_Cell>( chunkPos, ChunkSize );
@@ -41,7 +46,7 @@ public class LC_TerrainInstanciable : LC_Terrain<LC_Chunk<LC_Cell>,LC_Cell>
 				myTarget.ParallelChunkLoading = false;
 
 				// Generate
-				myTarget.Start();
+				myTarget.Generate();
 
 				// Restore parallel settings
 				myTarget.ParallelChunkLoading = parallelChunk;
