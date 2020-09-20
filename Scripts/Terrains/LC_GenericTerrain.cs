@@ -228,7 +228,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// <param name="isForMap">If the chunk is loading for the terrain mapping.</param>
 	protected virtual void LoadChunkMethod( Chunk chunk, bool isParallel, bool isForMap )
 	{
-		CreateCells( chunk );
+		CreateChunkCells( chunk );
 
 		if ( !isForMap )
 		{
@@ -245,7 +245,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// </summary>
 	/// <param name="chunk">Chunk to assign the cells.</param>
 	/// <returns></returns>
-	protected abstract void CreateCells( Chunk chunk );
+	protected abstract void CreateChunkCells( Chunk chunk );
 
 	/// <summary>
 	/// <para>Notify the chunk loading. If is a parallel execution, is added to the ChunksLoaded list in order to be build at BuildParallelyLoadedChunks method.</para>
@@ -711,7 +711,8 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	public virtual Cell GetCell( Vector3 realPos, bool isForMap = false )
 	{
-		return GetCell( RealPosToTerrain( realPos ), isForMap );
+		Vector3Int terrainPos = RealPosToTerrain( realPos );
+		return GetCell( new Vector2Int( terrainPos.x, terrainPos.z ), isForMap );
 	}
 
 	#endregion

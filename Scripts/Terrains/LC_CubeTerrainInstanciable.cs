@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class LC_CubeTerrainInstanciable : LC_CubeTerrain<LC_Chunk<LC_Cell>, LC_Cell>
 {
+	#region Chunk creation
+
 	public void Start()
 	{
 		Generate();
@@ -21,4 +23,6 @@ public class LC_CubeTerrainInstanciable : LC_CubeTerrain<LC_Chunk<LC_Cell>, LC_C
 		cell.Height = Mathf.RoundToInt( cell.Height );
 		return cell;
 	}
+
+	#endregion
 }

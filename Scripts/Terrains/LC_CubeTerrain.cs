@@ -19,13 +19,13 @@ public abstract class LC_CubeTerrain<Chunk, Cell> : LC_Terrain<Chunk, Cell> wher
 
 	#endregion
 
-	#region Initialization
+	#region Chunk creation
 
 	protected abstract override Cell CreateCell( int chunkX, int chunkZ, Chunk chunk );
 
 	#endregion
 
-	#region Render
+	#region Mesh
 
 	/// <summary>
 	/// Compute the mesh using Split and Merge algorithm if is specified.

@@ -1,5 +1,4 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Render types for the LC_Terrain.
@@ -19,10 +18,6 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 	#region Attributes
 
 	#region Settings
-
-	[SerializeField]
-	[Tooltip( "If true, regenerates the terrain when any setting is changed." )]
-	public bool AutoUpdate = false;
 
 	[Header( "Random generation settings" )]
 	[SerializeField]
@@ -67,8 +62,8 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 	#endregion
 
 	#region Function attributes
-
-	protected System.Random RandomGenerator;
+	
+	public System.Random RandomGenerator; // Will be created at Generate method if is not assigned externally
 
 	protected int NumTextures;
 	protected Vector2 TextureReservedSize;
@@ -88,7 +83,8 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 		TextureMargin = TextureReservedSize / TextureMarginRelation;
 		TextureSize = TextureReservedSize - 2 * TextureMargin;
 
-		RandomGenerator = new System.Random();
+		if ( RandomGenerator == null )
+			RandomGenerator = new System.Random();
 		if ( UseRandomSeed )
 			Seed = RandomGenerator.Next();
 
@@ -123,7 +119,7 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 	/// Create the cells of a chunk using a heights map.
 	/// </summary>
 	/// <param name="chunk"></param>
-	protected override void CreateCells( Chunk chunk )
+	protected override void CreateChunkCells( Chunk chunk )
 	{
 		chunk.HeightsMap = CreateChunkHeightsMap( chunk.Position );
 
@@ -340,5 +336,5 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 
 	#endregion
 
-	
+
 }

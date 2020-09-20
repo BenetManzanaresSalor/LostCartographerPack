@@ -5,6 +5,16 @@ using UnityEngine;
 
 public class LC_TerrainInstanciable : LC_Terrain<LC_Chunk<LC_Cell>,LC_Cell>
 {
+	#region Settings
+
+	[SerializeField]
+	[Tooltip( "If true, regenerates the terrain when any setting is changed." )]
+	public bool AutoUpdate = false;
+
+	#endregion
+
+	#region Chunk creation
+
 	public void Start()
 	{
 		Generate();
@@ -23,6 +33,10 @@ public class LC_TerrainInstanciable : LC_Terrain<LC_Chunk<LC_Cell>,LC_Cell>
 		return new LC_Cell( new Vector2Int( chunk.CellsOffset.x + chunkX, chunk.CellsOffset.y + chunkZ ),
 			chunk.HeightsMap[chunkX + 1, chunkZ + 1] ); // +1 to compensate the offset for normals computation
 	}
+
+	#endregion
+
+	#region Custom editor
 
 	/// <summary>
 	/// Auxiliar class used to allow AutoUpdate functionality and the Generate and Destroy buttons.
@@ -56,4 +70,6 @@ public class LC_TerrainInstanciable : LC_Terrain<LC_Chunk<LC_Cell>,LC_Cell>
 				myTarget.DestroyTerrain( true );
 		}
 	}
+
+	#endregion
 }
