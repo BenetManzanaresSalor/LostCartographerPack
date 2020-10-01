@@ -1,10 +1,10 @@
 # Lost Cartographer Pack
-Unity package for 3D terrain and 2D map generation created by Benet Manzanares Salor.
+Created by Benet Manzanares Salor.
 
 
 ## Description
 This project implements a generic 3D terrain and 2D map system written in C# using UnityEngine, designed to allow specific implementation of a terrain or a map using inheritance.
-As examples, this project includes two procedural generated terrains and the corresponding maps, and they are also ready for extension using inheritance. One of the terrains implements a standard mesh and the other creates a Minecraft-like mesh, both sharing the same procedural generation based on Unity's perlin noise.
+As examples, includes two procedural generated terrains and the corresponding maps, and they are also ready for extension using inheritance. One of the terrains implements a standard mesh and the other creates a Minecraft-like mesh, both sharing the same procedural generation based on Unity's perlin noise.
 
 
 ## Examples : Use what is already implemented
@@ -70,4 +70,4 @@ An abstract and generic class child of LC_GenericMap which implements GetColorPe
 * **Height continuous:** Using the list of colors setted at the inspector, applies a color interpolation for each pixel of the terrain based on its height.
 
 This class is ready for inheritance to use the desired terrain, chunk and cell types.
-Examples of this map can be found in both examples of the the Examples folder, using the LC_MapInstanciable and LC_CubeMapInstanciable child classes respectively.
+Both examples in the Examples folder use children of this class, specifically, the LC_MapInstanciable and LC_CubeMapInstanciable components.
