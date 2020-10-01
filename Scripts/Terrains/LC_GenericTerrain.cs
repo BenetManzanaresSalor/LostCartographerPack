@@ -332,7 +332,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	#endregion
 
-	#region Dynamic chunk loading
+	#region Update
 
 	/// <summary>
 	/// Updates the terrain if is required.
@@ -348,7 +348,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 			PlayerChunkPos = RealPosToChunk( Player.position ); // Required for DynamicChunkLoading
 			ChunkRenderRealDistance = ChunkRenderDistance * ChunkSize * Mathf.Max( CellSize.x, CellSize.z );    // Required for DynamicChunkLoading
 
-			// Check chunk loaded parallelly (if remains time)
+			// Check chunks loaded parallelly (if remains time)
 			if ( ParallelChunkLoading && InMaxUpdateTime() )
 				BuildParallelyLoadedChunks();
 
@@ -372,6 +372,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	protected virtual void CheckPlayerCurrentChunk()
 	{
 		Monitor.Enter( ChunksLoadingLock );
+
 		if ( !CurrentChunks.ContainsKey( PlayerChunkPos ) && !ChunksLoaded.ContainsKey( PlayerChunkPos ) )
 		{
 			bool isLoading = ChunksLoading.TryGetValue( PlayerChunkPos, out Chunk playerChunk );
@@ -400,6 +401,16 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	}
 
 	/// <summary>
+	/// Checks if a new iteration of a loop will be in the MaxUpdateTime using the average iteration time.
+	/// </summary>
+	/// <param name="averageIterationTime">Average time of the loop iteration.</param>
+	/// <returns></returns>
+	protected virtual bool InMaxUpdateTime( float averageIterationTime )
+	{
+		return ( Time.realtimeSinceStartup - UpdateIniTime + averageIterationTime ) <= MaxUpdateTime;
+	}
+
+	/// <summary>
 	/// Builds the chunks loaded parallely. For each chunk it uses the InMaxUpdateTime method, breaking the loop if the MaxUpdateTime is exceeded.
 	/// </summary>
 	protected virtual void BuildParallelyLoadedChunks()
@@ -408,29 +419,38 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		{
 			lock ( ChunksLoadingLock )
 			{
+				Chunk chunk;
 				List<Vector2Int> chunksBuilt = new List<Vector2Int>( ChunksLoaded.Count );
+				float loopStartTime = Time.realtimeSinceStartup;
+				float numIterations = 0;
+				float averageIterationTime = 0;
 				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoaded )
 				{
-					if ( InMaxUpdateTime() )
+					if ( InMaxUpdateTime( averageIterationTime ) )
 					{
-						if ( !DynamicChunkLoading || IsChunkRequired( entry.Key ) )
+						chunk = entry.Value;
+						if ( IsChunkRequired( chunk.Position ) )
 						{
-							BuildChunk( entry.Value );
-							CurrentChunks.Add( entry.Key, entry.Value );
+							BuildChunk( chunk );
+							CurrentChunks.Add( chunk.Position, chunk );
 						}
 						else
 						{
-							entry.Value.Destroy();
+							chunk.Destroy();
 						}
 
 						chunksBuilt.Add( entry.Key );
+
+						numIterations++;
+						averageIterationTime = ( Time.realtimeSinceStartup - loopStartTime ) / numIterations;
 					}
 					else
 						break;
 				}
 
-				foreach ( Vector2Int chunkPos in chunksBuilt )
-					ChunksLoaded.Remove( chunkPos );
+				// Delete chunks already built
+				foreach ( Vector2Int key in chunksBuilt )
+					ChunksLoaded.Remove( key );
 			}
 		}
 	}
@@ -443,7 +463,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// </summary>
 	protected virtual void DynamicChunksUpdate()
 	{
-		Dictionary<Vector2Int, object> chunkRequired = ComputeChunksRequired(); // Use a dictionary for faster searchs
+		Dictionary<Vector2Int, object> chunkRequired = DynamicChunksRequired(); // Use a dictionary for faster searchs
 
 		// Check chunks already created
 		List<Vector2Int> chunksToDestroy = new List<Vector2Int>();
@@ -466,35 +486,46 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		foreach ( Vector2Int chunkPos in chunksToDestroy )
 			CurrentChunks.Remove( chunkPos );
 
-		lock ( ChunksLoadingLock )
+		if ( InMaxUpdateTime() )
 		{
-			// Ignore chunks that are loading
-			foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoading )
-				if ( chunkRequired.ContainsKey( entry.Key ) )
-					chunkRequired.Remove( entry.Key );
-
-			// Ignore chunks that are already loaded
-			foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoaded )
-				if ( chunkRequired.ContainsKey( entry.Key ) )
-					chunkRequired.Remove( entry.Key );
-
-			// Load the other chunks
-			foreach ( KeyValuePair<Vector2Int, object> entry in chunkRequired )
+			lock ( ChunksLoadingLock )
 			{
-				if ( InMaxUpdateTime() )
-					LoadChunk( entry.Key );
-				else
-					break;
+				// Ignore chunks that are loading
+				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoading )
+					if ( chunkRequired.ContainsKey( entry.Key ) )
+						chunkRequired.Remove( entry.Key );
+
+				// Ignore chunks that are already loaded
+				foreach ( KeyValuePair<Vector2Int, Chunk> entry in ChunksLoaded )
+					if ( chunkRequired.ContainsKey( entry.Key ) )
+						chunkRequired.Remove( entry.Key );
+
+				// Load the other chunks
+				float loopStartTime = Time.realtimeSinceStartup;
+				float numIterations = 0;
+				float averageIterationTime = 0;
+				foreach ( KeyValuePair<Vector2Int, object> entry in chunkRequired )
+				{
+					if ( InMaxUpdateTime( averageIterationTime ) )
+					{
+						LoadChunk( entry.Key );
+
+						numIterations++;
+						averageIterationTime = ( Time.realtimeSinceStartup - loopStartTime ) / numIterations;
+					}
+					else
+						break;
+				}
 			}
 		}
 	}
 
 	/// <summary>
-	/// <para>Calculate the chunks required using the player position and the ChunkRenderDistance.</para>
+	/// <para>Calculate the chunks required dynamically using the player position and the ChunkRenderDistance.</para>
 	/// <para>Returns a dictionary instead of a list for performance reasons.</para>
 	/// </summary>
 	/// <returns></returns>
-	protected virtual Dictionary<Vector2Int, object> ComputeChunksRequired()
+	protected virtual Dictionary<Vector2Int, object> DynamicChunksRequired()
 	{
 		Dictionary<Vector2Int, object> chunksRequired = new Dictionary<Vector2Int, object>();
 
@@ -584,7 +615,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	#endregion
 
-	#region Auxiliar or external use
+	#region Auxiliar
 
 	/// <summary>
 	/// Checks if a chunk is required using the player position, chunk position, and the ChunkRenderDistance.
@@ -593,20 +624,33 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// <returns></returns>
 	public virtual bool IsChunkRequired( Vector2Int chunkPos )
 	{
-		bool isrequired = chunkPos == PlayerChunkPos;
+		bool isrequired = false;
 
-		// If isn't the player current chunk
-		if ( !isrequired )
+		if ( DynamicChunkLoading )
 		{
-			Vector3 chunkRealPosition = ChunkPosToReal( chunkPos );
-			Vector3 offsetToPlayer = chunkRealPosition - Player.position;
-			offsetToPlayer.y = 0; // Ignore height offset
+			isrequired = chunkPos == PlayerChunkPos;
 
-			isrequired = offsetToPlayer.magnitude <= ChunkRenderRealDistance;
+			// If isn't the player current chunk
+			if ( !isrequired )
+			{
+				Vector3 chunkRealPosition = ChunkPosToReal( chunkPos );
+				Vector3 offsetToPlayer = chunkRealPosition - Player.position;
+				offsetToPlayer.y = 0; // Ignore height offset
+
+				isrequired = offsetToPlayer.magnitude <= ChunkRenderRealDistance;
+			}
+		}
+		else
+		{
+			isrequired = chunkPos.x <= ChunkRenderDistance && chunkPos.y <= ChunkRenderDistance;
 		}
 
 		return isrequired;
 	}
+
+	#endregion
+
+	#region External use
 
 	public virtual Vector3 TerrainPosToReal( int x, float height, int z )
 	{

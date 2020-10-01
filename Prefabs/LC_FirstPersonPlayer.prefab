@@ -95,7 +95,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MouseSensitivity: 100
-  XandZvelocity: 15
+  XandZvelocity: 100
   JumpHeight: 3
   Gravity: -9.807
   GroundCheck: {fileID: 3543242142416358627}
@@ -104,7 +104,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   FreeVerticalMovement: 1
-  Yvelocity: 15
+  Yvelocity: 30
 --- !u!1 &3543242143765965901
 GameObject:
   m_ObjectHideFlags: 0
