@@ -1,9 +1,5 @@
 # Lost Cartographer Pack
-Created by Benet Manzanares Salor.
-
-
-## Description
-This project implements a generic 3D terrain and 2D map system written in C# using UnityEngine, designed to allow specific implementation of a terrain or a map using inheritance.
+This project implements a generic 3D terrain and 2D map system written in C# using Unity game engine, designed to allow specific implementation of a terrain or a map using inheritance.
 As examples, includes two procedural generated terrains and the corresponding maps, and they are also ready for extension using inheritance. One of the terrains implements a standard mesh and the other creates a Minecraft-like mesh, both sharing the same procedural generation based on Unity's perlin noise.
 
 
