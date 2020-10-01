@@ -642,7 +642,8 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		}
 		else
 		{
-			isrequired = chunkPos.x <= ChunkRenderDistance && chunkPos.y <= ChunkRenderDistance;
+			Vector2Int distanceToPlayer = new Vector2Int( Mathf.Abs( PlayerChunkPos.x - chunkPos.x ), Mathf.Abs( PlayerChunkPos.y - chunkPos.y ) );
+			isrequired = distanceToPlayer.x <= ChunkRenderDistance && distanceToPlayer.y <= ChunkRenderDistance;
 		}
 
 		return isrequired;
