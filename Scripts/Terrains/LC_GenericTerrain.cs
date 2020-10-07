@@ -52,19 +52,19 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	#region Function attributes
 
-	protected bool IsGenerated = false;
-	protected int ChunkSize;
-	protected Vector3 CurrentRealPos;    // Equivalent to transform.position. Required for parallel chunk mesh loading.
-	protected Vector2Int PlayerChunkPos;
-	protected Vector3 HalfChunk;
-	protected float ChunkRenderRealDistance;
-	protected Dictionary<Vector2Int, Chunk> CurrentChunks;
-	protected Dictionary<Vector2Int, Chunk> ChunksLoading;
-	protected Dictionary<Vector2Int, Chunk> ChunksLoaded;
-	protected Dictionary<Vector2Int, Chunk> ChunksForMap;
-	protected Dictionary<Vector2Int, Chunk> ChunksLoadingForMap;
+	public bool IsGenerated { get; protected set; }
+	public int ChunkSize { get; protected set; }
+	public Vector3 CurrentRealPos { get; protected set; }    // Equivalent to transform.position. Required for parallel chunk mesh loading.
+	public Vector2Int PlayerChunkPos { get; protected set; }
+	public Vector3 HalfChunk { get; protected set; }
+	public float ChunkRenderRealDistance { get; protected set; }
+	public Dictionary<Vector2Int, Chunk> CurrentChunks { get; protected set; }
+	public Dictionary<Vector2Int, Chunk> ChunksLoading { get; protected set; }
+	public Dictionary<Vector2Int, Chunk> ChunksLoaded { get; protected set; }
+	public Dictionary<Vector2Int, Chunk> ChunksForMap { get; protected set; }
+	public Dictionary<Vector2Int, Chunk> ChunksLoadingForMap { get; protected set; }
 
-	protected float UpdateIniTime;
+	public float UpdateIniTime { get; protected set; }
 
 	protected object ChunksLoadingLock = new object();
 
@@ -92,30 +92,19 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 		PlayerChunkPos = RealPosToChunk( Player.position );
 
-		DestroyTerrain( true );
+		DestroyTerrain();
 		IniTerrain();
 	}
 
 	/// <summary>
 	/// Destroys all the chunks of the terrain, including all GameObjects and ParallelTasks.
 	/// </summary>
-	/// <param name="immediate">If destroys immediate the GameObjects.</param>
-	public virtual void DestroyTerrain( bool immediate )
+	public virtual void DestroyTerrain()
 	{
 		IsGenerated = false;
 
-		Transform[] allChildren = GetComponentsInChildren<Transform>();
-		if ( allChildren.Length > 0 )
-			foreach ( Transform child in allChildren )
-			{
-				if ( child.gameObject != gameObject )
-				{
-					if ( immediate )
-						DestroyImmediate( child.gameObject );
-					else
-						Destroy( child.gameObject );
-				}
-			}
+		foreach ( Transform child in transform )
+			Destroy( child.gameObject );
 
 		if ( CurrentChunks != null )
 		{
@@ -168,14 +157,14 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	/// </summary>
 	protected virtual void IniTerrain()
 	{
-		IsGenerated = true;
-
 		// Always load the current player chunk
 		LoadChunk( PlayerChunkPos, true );
 
 		// Load the other chunks
 		foreach ( Vector2Int chunkPos in LC_Math.AroundPositions( PlayerChunkPos, ChunkRenderDistance ) )
 			LoadChunk( chunkPos );
+
+		IsGenerated = true;
 	}
 
 	#endregion
@@ -199,16 +188,9 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 			ChunksLoading.Add( chunkPos, chunk );
 
 		if ( isParallel )
-		{
-			chunk.ParallelTask = Task.Run( () =>
-			{
-				LoadChunkMethod( chunk, isParallel, isForMap );
-			} );
-		}
+			chunk.ParallelTask = Task.Run( () => { LoadChunkMethod( chunk, isParallel, isForMap ); } );
 		else
-		{
 			LoadChunkMethod( chunk, isParallel, isForMap );
-		}
 	}
 
 	/// <summary>
@@ -686,14 +668,17 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	public virtual Vector2Int TerrainPosToChunk( Vector2Int terrainPos )
 	{
-		Vector2Int res = new Vector2Int( terrainPos.x / ChunkSize, terrainPos.y / ChunkSize );
+		Vector2 chunkPos = new Vector2( (float)terrainPos.x / ChunkSize, (float)terrainPos.y / ChunkSize );
 
-		if ( terrainPos.x < 0 )
-			res.x -= 1;
-		if ( terrainPos.y < 0 )
-			res.y -= 1;
+		// Adjust negative postions
+		float decimalX = chunkPos.x - (int)chunkPos.x;
+		if ( decimalX < 0f )
+			chunkPos.x -= 1;
+		float decimalY = chunkPos.y - (int)chunkPos.y;
+		if ( decimalY < 0f )
+			chunkPos.y -= 1;
 
-		return res;
+		return new Vector2Int( (int)chunkPos.x, (int)chunkPos.y );
 	}
 
 	public virtual Vector2Int TerrainPosToChunk( Vector3Int terrainPos )
@@ -739,12 +724,6 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		// Get cell from the chunk if it exists
 		if ( chunk != null )
 		{
-			// Adjust for the module operation
-			if ( terrainPos.x < 0 )
-				terrainPos.x--;
-			if ( terrainPos.y < 0 )
-				terrainPos.y--;
-
 			Vector2Int posInChunk = new Vector2Int( LC_Math.Mod( terrainPos.x, ChunkSize ),
 				LC_Math.Mod( terrainPos.y, ChunkSize ) );
 
