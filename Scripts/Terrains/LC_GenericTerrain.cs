@@ -14,39 +14,42 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	[Header( "Global settings" )]
 	[SerializeField]
+	[Tooltip( "If the terrain is generated in Start method." )]
+	protected bool GenerateAtStart = true;
+	[SerializeField]
 	[Tooltip( "The player used as reference position for generate the terrain.\nAlways required, including if DynamicChunkLoading is disabled." )]
-	protected Transform Player;
+	public Transform Player;
 	[SerializeField]
 	[Tooltip( "Scale of each cell of the terrain." )]
-	protected Vector3 CellSize = Vector3.one;
+	public Vector3 CellSize = Vector3.one;
 	[SerializeField]
 	[Tooltip( "Two raised to this number is the number of cells per side of each chunk.\n" +
 		"If ParallelChunkLoading is used lower values are recomended.\n" +
 		"Big values can cause error, because the chunk mesh can exceed the maximum number of vertices (65536)." )]
 	[Range( 1, 8 )]
-	protected int ChunkSizeLevel = 4;
+	public int ChunkSizeLevel = 4;
 	[SerializeField]
 	[Tooltip( "Distance from the player to a chunk required to load it, defined as number of chunks.\nAlong with ChunkSizeLevel, defines the final render distance." )]
 	[Range( 0, 64 )]
-	protected int ChunkRenderDistance = 8;
+	public int ChunkRenderDistance = 8;
 	[SerializeField]
 	[Tooltip( "If the chunks have MeshCollider.\nIt can affect significantly to the performance." )]
-	protected bool HasCollider = true;
+	public bool HasCollider = true;
 	[SerializeField]
 	[Tooltip( "If the chunks are loaded around the player when he moves." )]
-	protected bool DynamicChunkLoading = true;
+	public bool DynamicChunkLoading = true;
 	[SerializeField]
 	[Tooltip( "If use parallel Tasks to speed up chunk loading." )]
-	protected bool ParallelChunkLoading = true;
+	public bool ParallelChunkLoading = true;
 	[SerializeField]
 	[Tooltip( "Material to use at MeshRenderer." )]
-	protected Material RenderMaterial;
+	public Material RenderMaterial;
 	[SerializeField]
 	[Tooltip( "Maximum seconds for every Update call.\n" +
 		"This value is checked between every chunk load or build, avoiding further loads during that frame if the maximum time is exceeded.\n" +
 		"Lower values means better framerate but slower chunk loading." )]
 	[Min( float.MinValue )]
-	protected float MaxUpdateTime = 1f / ( 60f * 2f );
+	public float MaxUpdateTime = 1f / ( 60f * 2f );
 
 	#endregion
 
@@ -74,13 +77,21 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 
 	#region Initialization
 
+	protected virtual void Start()
+	{
+		if ( GenerateAtStart )
+			Generate();
+	}
+
 	/// <summary>
 	/// Initialize the variables, destroy the previous terrain (if exists) and generates a new terrain.
 	/// </summary>
 	public virtual void Generate()
 	{
-		ChunkSize = (int)Mathf.Pow( 2, ChunkSizeLevel );
 		CurrentRealPos = transform.position;
+
+		ChunkSize = (int)Mathf.Pow( 2, ChunkSizeLevel );
+		ChunkRenderRealDistance = ChunkRenderDistance * ChunkSize * Mathf.Max( CellSize.x, CellSize.z );
 
 		HalfChunk = new Vector3( CellSize.x, 0, CellSize.z ) * ( ChunkSize / 2 );
 		ChunksLoading = new Dictionary<Vector2Int, Chunk>();
@@ -645,6 +656,11 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 		return TerrainPosToReal( terrainPos.x, height, terrainPos.y );
 	}
 
+	public virtual Vector3 TerrainPosToReal( Vector3Int terrainPos )
+	{
+		return TerrainPosToReal( terrainPos.x, terrainPos.y, terrainPos.z );
+	}
+
 	public virtual Vector3 TerrainPosToReal( Cell cell )
 	{
 		return TerrainPosToReal( cell.TerrainPos, cell.Height );
@@ -658,7 +674,7 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	public virtual Vector3Int RealPosToTerrain( Vector3 realPos )
 	{
 		Vector3 relativePos = realPos - CurrentRealPos + HalfChunk;
-		return new Vector3Int( (int)( relativePos.x / CellSize.x ), (int)( relativePos.y / CellSize.y ), (int)( relativePos.z / CellSize.z ) );
+		return new Vector3Int( Mathf.RoundToInt( relativePos.x / CellSize.x ), Mathf.RoundToInt( relativePos.y / CellSize.y ), Mathf.RoundToInt( relativePos.z / CellSize.z ) );
 	}
 
 	public virtual Vector3Int GetPlayerTerrainPos()
@@ -736,6 +752,11 @@ public abstract class LC_GenericTerrain<Chunk, Cell> : MonoBehaviour where Chunk
 	public virtual Cell GetCell( Vector3 realPos, bool isForMap = false )
 	{
 		Vector3Int terrainPos = RealPosToTerrain( realPos );
+		return GetCell( terrainPos, isForMap );
+	}
+
+	public virtual Cell GetCell( Vector3Int terrainPos, bool isForMap = false )
+	{
 		return GetCell( new Vector2Int( terrainPos.x, terrainPos.z ), isForMap );
 	}
 

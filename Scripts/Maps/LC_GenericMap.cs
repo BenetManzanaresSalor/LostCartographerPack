@@ -11,6 +11,9 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	[Header( "General settings" )]
 	[SerializeField]
+	[Tooltip( "If the map is initializated in Start method." )]
+	protected bool InitializeAtStart = true;
+	[SerializeField]
 	[Tooltip( "Object texture of the map computation." )]
 	protected RenderTexture TargetTexture;
 	[SerializeField]
@@ -56,15 +59,25 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 
 	#region Initialization
 
+	protected virtual void Start()
+	{
+		if ( InitializeAtStart )
+			Initialize();
+	}
+
 	/// <summary>
 	/// Initializes the map variables and the texture.
 	/// </summary>
-	protected virtual void Start()
+	public virtual void Initialize()
 	{
 		TerrainToMap = FindObjectOfType<Terrain>();
 		MapTexture = new Texture2D( TextureWidthAndHeight.x, TextureWidthAndHeight.y );
 		TextureColors = new Color32[MapTexture.width * MapTexture.height];
 		CurrentCellPosInTex = Vector2Int.zero;
+
+		Vector3Int refPos = TerrainToMap.RealPosToTerrain( TerrainToMap.ChunkPosToReal( TerrainToMap.PlayerChunkPos ) );
+		ReferencePos.x = refPos.x;
+		ReferencePos.y = refPos.z;
 	}
 
 	#endregion
@@ -79,8 +92,13 @@ public abstract class LC_GenericMap<Terrain, Chunk, Cell> : MonoBehaviour where 
 		if ( Time.frameCount % FramesBtwUpdates == 0 )
 		{
 			UpdateIniTime = Time.realtimeSinceStartup;
-			HalfMapOffset = new Vector2Int( NumCellsWidthAndHeight.x / 2, NumCellsWidthAndHeight.y / 2 ); // Update HalfMapOffset for map generation
-			ReferencePos = GetReferencePos();
+
+			// Update map info
+			HalfMapOffset.x = NumCellsWidthAndHeight.x / 2;
+			HalfMapOffset.y = NumCellsWidthAndHeight.y / 2;
+
+			if ( TerrainToMap.DynamicChunkLoading || MapNonLoadedChunks )
+				ReferencePos = GetReferencePos();
 
 			if ( MapNonLoadedChunks && InMaxUpdateTime() )
 				UpdateTerrainToMapChunks();
