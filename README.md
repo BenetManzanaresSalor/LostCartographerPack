@@ -1,10 +1,12 @@
 # Lost Cartographer Pack
-This project implements a procedural 3D terrain and 2D map tools for Unity game engine. The system is designed to allow specific implementation of a terrain or a map using inheritance.
+This project implements a procedural 3D terrain and 2D map tools for Unity game engine. The system is designed to allow specific implementation of a terrain or a map using inheritance. This project is used in the simulation game <a href="https://github.com/BenetManzanaresSalor/LifeStepByStep">Life Step By Step</a>
 
 As examples, includes two procedural generated terrains and the corresponding maps, and they are also ready for extension using inheritance. One of the terrains implements a standard mesh and the other creates a Minecraft-like mesh, both sharing the same procedural generation based on Unity's perlin noise.
 
-Also, the project contains a math helper static class called LC_Math, which includes perlin noise height map generation and split and merge algorithm.
+Also, it contains a math helper static class called LC_Math, which includes perlin noise height map generation and split and merge algorithm.
 All the settings and most important methods have their corresponding tooltips and documentation.
+
+In addition, you can check the project on its <a href="https://benetmanzanaressalor.itch.io/lost-cartographer-pack">itch.io</a> page.
 
 This project is free to use and modify with attribution.
 
