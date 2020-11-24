@@ -10,7 +10,7 @@ In addition, you can check the project on its <a href="https://benetmanzanaressa
 
 This project is free to use and modify with attribution.
 
-![LC_TerrainInstanciable from top](https://user-images.githubusercontent.com/47823656/100124319-cbcd0c00-2e7b-11eb-9f12-40b4fdbc1f4d.png)
+![LC_TerrainInstanciableFromTop](https://user-images.githubusercontent.com/47823656/100140078-be6e4c80-2e90-11eb-9f44-016d3b9dc938.png)
 
 ## Examples : Use what is already implemented
 If you want to use this pack without touch code you can use the examples as reference:
@@ -42,7 +42,7 @@ This maximum is checked by the InMaxUpdateTime method at each iteration of the d
 
 ### LC_Terrain
 
-![LC_TerrainInstanciable and continuoos LC_Map screenshot](https://user-images.githubusercontent.com/47823656/100123133-7a704d00-2e7a-11eb-80e8-81f4779f3395.png)
+![LC_TerrainInstanciable](https://user-images.githubusercontent.com/47823656/100140088-c3cb9700-2e90-11eb-9172-c1ea43936a44.png)
 
 An abstract and generic class child of LC_GenericTerrain which generates the terrain procedurally with a standard triangle-based mesh for each chunk. The procedural generation is done with height maps created by the PerlinNoiseMap method (implemented in LC_Math class) which uses Unity's Mathf.PerlinNoise.
 This class is ready for inheritance to use the desired chunk and cell types.
@@ -57,7 +57,7 @@ An example of this terrain can be found in the Examples folder, which uses the L
 
 ### LC_CubeTerrain
 
-![LC_CubeTerrainInstanciable and discrete LC_Map](https://user-images.githubusercontent.com/47823656/100123408-c1f6d900-2e7a-11eb-8924-0396125c37f8.png)
+![LC_CubeTerrainInstanciable](https://user-images.githubusercontent.com/47823656/100140318-16a54e80-2e91-11eb-96f2-a39b91ddfa3f.png)
 
 An abstract and generic class child of LC_Terrain that gives the mesh a Minecraft-like style, using cubes for each cell. The heights of each cells are rounded to integers, and a generic split and merge algorithm (implemented in LC_Math class) can be used to reduce the complexity of the meshes.
 This class is ready for inheritance to use the desired chunk and cell types.
@@ -77,6 +77,9 @@ Also, just like in terrain generation, you can set the maximum time that should 
 
 
 ### LC_Map
+
+![LC_MapContinuousAndDiscrete](https://user-images.githubusercontent.com/47823656/100140101-c8904b00-2e90-11eb-8622-ad0640836b2e.png)
+
 An abstract and generic class child of LC_GenericMap which implements GetColorPerCell with techniques similiar to LC_Terrain:
 * **Height discrete**: Using the list of colors setted at the inspector, applies one color for each pixel of the terrain based on its height.
 * **Height continuous**: Using the list of colors setted at the inspector, applies a color interpolation for each pixel of the terrain based on its height.
