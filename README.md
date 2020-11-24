@@ -1,6 +1,9 @@
 # Lost Cartographer Pack
 This project implements a generic 3D terrain and 2D map system written in C# using Unity game engine, designed to allow specific implementation of a terrain or a map using inheritance.
 As examples, includes two procedural generated terrains and the corresponding maps, and they are also ready for extension using inheritance. One of the terrains implements a standard mesh and the other creates a Minecraft-like mesh, both sharing the same procedural generation based on Unity's perlin noise.
+The project includes a math helper static class called LC_Math, which includes perlin noise height map generation and split and merge algorithm.
+All the settings and most important methods have their corresponding tooltips and documentation.
+This project is free to use and modify with attribution.
 
 ![LC_TerrainInstanciable from top](https://user-images.githubusercontent.com/47823656/100124319-cbcd0c00-2e7b-11eb-9f12-40b4fdbc1f4d.png)
 
