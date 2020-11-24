@@ -185,7 +185,7 @@ MonoBehaviour:
   MaxUpdateTime: 0.008333334
   MapNonLoadedChunks: 1
   UseMipMaps: 1
-  RenderType: 1
+  RenderType: 2
   Colors:
   - {r: 0.9176471, g: 0.8862746, b: 0.80392164, a: 1}
   - {r: 0.5568628, g: 0.5803922, b: 0.2901961, a: 1}
@@ -355,7 +355,6 @@ MonoBehaviour:
   - {r: 0.9176471, g: 0.8862746, b: 0.80392164, a: 1}
   - {r: 0.5568628, g: 0.5803922, b: 0.2901961, a: 1}
   - {r: 0.3019608, g: 0.34901962, b: 0.16470589, a: 1}
-  AutoUpdate: 0
 --- !u!4 &1052120543
 Transform:
   m_ObjectHideFlags: 0

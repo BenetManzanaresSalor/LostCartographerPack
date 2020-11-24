@@ -331,6 +331,4 @@ public abstract class LC_Terrain<Chunk, Cell> : LC_GenericTerrain<Chunk, Cell> w
 	#endregion
 
 	#endregion
-
-
 }

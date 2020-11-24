@@ -2,6 +2,7 @@
 This project implements a generic 3D terrain and 2D map system written in C# using Unity game engine, designed to allow specific implementation of a terrain or a map using inheritance.
 As examples, includes two procedural generated terrains and the corresponding maps, and they are also ready for extension using inheritance. One of the terrains implements a standard mesh and the other creates a Minecraft-like mesh, both sharing the same procedural generation based on Unity's perlin noise.
 
+![LC_TerrainInstanciable from top](https://user-images.githubusercontent.com/47823656/100124319-cbcd0c00-2e7b-11eb-9f12-40b4fdbc1f4d.png)
 
 ## Examples : Use what is already implemented
 If you want to use this pack without touch code you can use the examples as reference:
@@ -32,6 +33,9 @@ This maximum is checked by the InMaxUpdateTime method at each iteration of the d
 
 
 ### LC_Terrain
+
+![LC_TerrainInstanciable and continuoos LC_Map screenshot](https://user-images.githubusercontent.com/47823656/100123133-7a704d00-2e7a-11eb-80e8-81f4779f3395.png)
+
 An abstract and generic class child of LC_GenericTerrain which generates procedurally generated the terrain with a standard mesh for each chunk. The procedural generation is done with height maps created by the PerlinNoiseMap method (implemented in LC_Math class) which uses Unity's Mathf.PerlinNoise.
 This class is ready for inheritance to use the desired chunk and cell types.
 
@@ -44,6 +48,9 @@ An example of this terrain can be found in the Examples folder, which uses the L
 
 
 ### LC_CubeTerrain
+
+![LC_CubeTerrainInstanciable and discrete LC_Map](https://user-images.githubusercontent.com/47823656/100123408-c1f6d900-2e7a-11eb-8924-0396125c37f8.png)
+
 An abstract and generic class child of LC_Terrain that gives the mesh a Minecraft-like style, using cubes for each cell. The heights of each cells are rounded to integers, and a generic split and merge algorithm (implemented in LC_Math class) can be used to reduce the complexity of the meshes.
 This class is ready for inheritance to use the desired chunk and cell types.
 An example of this terrain can be found in the Examples folder, which uses the LC_CubeTerrainInstanciable class.

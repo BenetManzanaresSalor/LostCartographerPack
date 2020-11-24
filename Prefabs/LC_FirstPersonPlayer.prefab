@@ -40,7 +40,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3543242142647039392}
   - component: {fileID: 3543242142647039407}
-  - component: {fileID: 3543242142647039406}
+  - component: {fileID: 2292120659350339852}
   m_Layer: 9
   m_Name: LC_FirstPersonPlayer
   m_TagString: Untagged
@@ -82,7 +82,7 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3543242142647039406
+--- !u!114 &2292120659350339852
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,16 +91,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 3543242142647039405}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c43b6301b6f9eb24e96c41baec8998d0, type: 3}
+  m_Script: {fileID: 11500000, guid: 679a0ea503742ed47a9632b52e8126c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   AutoInitialize: 1
   MoveEnabled: 1
   RotateEnabled: 1
   MouseSensitivity: 100
-  HoritzontalVelocity: 50
+  HoritzontalVelocity: 100
   FreeVerticalMovement: 1
-  FreeVerticalVelocity: 50
+  FreeVerticalVelocity: 100
   JumpHeight: 3
   UseMoreRealisticJump: 1
   MoreRealisticJumpVelocityDivisor: 2
