@@ -39,7 +39,7 @@ This maximum is checked by the InMaxUpdateTime method at each iteration of the d
 
 ![LC_TerrainInstanciable and continuoos LC_Map screenshot](https://user-images.githubusercontent.com/47823656/100123133-7a704d00-2e7a-11eb-80e8-81f4779f3395.png)
 
-An abstract and generic class child of LC_GenericTerrain which generates procedurally generated the terrain with a standard mesh for each chunk. The procedural generation is done with height maps created by the PerlinNoiseMap method (implemented in LC_Math class) which uses Unity's Mathf.PerlinNoise.
+An abstract and generic class child of LC_GenericTerrain which generates the terrain procedurally with a standard triangle-based mesh for each chunk. The procedural generation is done with height maps created by the PerlinNoiseMap method (implemented in LC_Math class) which uses Unity's Mathf.PerlinNoise.
 This class is ready for inheritance to use the desired chunk and cell types.
 
 Additionally, the terrain can be coloured using different techniques:
